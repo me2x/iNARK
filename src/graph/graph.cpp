@@ -1,8 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include "iNARKConfig.h"
-
 #include "graph.h"
 
 #include <boost/filesystem.hpp>
