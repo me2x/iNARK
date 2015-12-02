@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+        <components>
+                <component>
+                        <layer>1</layer>
+                        <name>func_0</name>
+                </component>        
+ <component>
+                        <layer>2</layer>
+                        <name>task_0</name>
+                </component>
+                <component>
+                        <layer>1</layer>
+                        <name>func_1</name>
+                </component>
+                   <component>
+                        <layer>3</layer>
+                        <name>OS_0</name>
+                </component>
+                <component>
+                        <layer>2</layer>
+                        <name>task_1</name>
+                </component>
+            
+                <component>
+                        <layer>3</layer>
+                        <name>OS_1</name>
+                </component>
+        </components>
+        <edges>
+                <edge>
+                        <from>func_0</from>
+                        <to>task_0</to>
+                        <priority>2</priority>
+                </edge>
+                <edge>
+                        <from>task_0</from>
+                        <to>OS_0</to>
+                        <priority>2</priority>
+                </edge>
+                <edge>
+                        <from>func_1</from>
+                        <to>task_1</to>
+                        <priority>2</priority>
+                </edge>
+                <edge>
+                        <from>OS_0</from>
+                        <to>task_1</to>
+                        <priority>1</priority>
+                </edge>
+
+
+        </edges>
+</root>
