@@ -1,6 +1,9 @@
 cmake_minimum_required (VERSION 2.8)
 project (iNARK)
 
+
+option(DEBUG "debug option" OFF)
+
 #set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 
 # Compiler Options

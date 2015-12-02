@@ -1,3 +1,4 @@
 // the configured options and settings for Tutorial
 #define iNARK_VERSION_MAJOR @iNARK_VERSION_MAJOR@
 #define iNARK_VERSION_MINOR @iNARK_VERSION_MINOR@
+#cmakedefine DEBUG
