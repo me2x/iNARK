@@ -24,28 +24,26 @@ public:
   void examine_vertex(const vertex_t s, const boost::filtered_graph<Internal_Graph, inner_edge_predicate_c>  g) const ;
   void examine_edge(const inner_edge_t e, const boost::filtered_graph<Internal_Graph, inner_edge_predicate_c>  g) const ;
   void edge_relaxed(const inner_edge_t e, const boost::filtered_graph<Internal_Graph, inner_edge_predicate_c>  g) const ;
-  void edge_not_relaxed(const inner_edge_t e, const boost::filtered_graph<Internal_Graph, custom_edge_predicate_c>  g) const ;
-  void finish_vertex(const vertex_t s, const boost::filtered_graph<Internal_Graph, custom_edge_predicate_c>  g) const ;
+  void edge_not_relaxed(const inner_edge_t e, const boost::filtered_graph<Internal_Graph, inner_edge_predicate_c>  g) const ;
+  void finish_vertex(const vertex_t s, const boost::filtered_graph<Internal_Graph, inner_edge_predicate_c>  g) const ;
 };
 
 class extern_vertex_predicate_c {
 public:
-  inner_edge_predicate_c() : graph_m(0) ,threshold(NO_PRIORITY){}
-  inner_edge_predicate_c(Graph& g,Priority threshold) : graph_m(&g), threshold (threshold) {}
-  bool operator()(const edge_t& edge_id) const;
+  extern_vertex_predicate_c() : graph_m(0) {}
+  extern_vertex_predicate_c(Graph& g) : graph_m(&g) {}
+  bool operator()(const vertex_t& vertex_id) const;
 private:
   Graph* graph_m;
-  Priority threshold;
 };
 
 class extern_edge_predicate_c {
 public:
-  inner_edge_predicate_c() : graph_m(0) ,threshold(NO_PRIORITY){}
-  inner_edge_predicate_c(Graph& ig,Priority threshold) : graph_m(&g), threshold (threshold) {}
-  bool operator()(const vertex_t& edge_id) const;
+  extern_edge_predicate_c() : graph_m(0) {}
+  extern_edge_predicate_c(Graph& g) : graph_m(&g) {}
+  bool operator()(const edge_t& edge_id) const;
 private:
   Graph* graph_m;
-  Priority threshold;
 };
 
 

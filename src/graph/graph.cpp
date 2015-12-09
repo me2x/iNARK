@@ -96,7 +96,7 @@ bool custom_graph::create_graph(std::string xml)
 {
        using boost::property_tree::ptree;
        ptree pt;
-       read_xml("/home/emanuele/iNARK/iNARK/spec.xml",pt);
+       read_xml("/home/emanuele/iNARK/spec.xml",pt);
        // create a typedef for the Graph type
        // Graph g;
            BOOST_FOREACH(ptree::value_type &v,pt.get_child("root.components"))
@@ -146,13 +146,13 @@ bool custom_graph::search_component_dependences(std::string from, std::string to
 #ifdef DEBUG
     const char* name = "0123456789abcdefghilmnopqrstuvz";
 #endif
-    boost::filtered_graph<Graph, extern_vertex_predicate ,extern_edge_predicate_c> fg(local_graph,extern_vertex_predicate_c(local_graph),extern_edge_predicate_c(local_graph));
+    boost::filtered_graph<Graph, extern_vertex_predicate_c ,extern_edge_predicate_c> fg(local_graph,extern_vertex_predicate_c(local_graph),extern_edge_predicate_c(local_graph));
        PRINT_DEBUG("fg edges number is: ");
 #ifdef DEBUG
        boost::print_edges(fg,name);
 #endif
     PRINT_DEBUG(vertex_map.at(from));
-    my_visitor vis = my_visitor(vertex_map.at(to));
+    extern_visitor vis = extern_visitor(vertex_map.at(to));
     try {
       boost::breadth_first_search(
         fg, vertex_map.at(from),boost::visitor(vis)

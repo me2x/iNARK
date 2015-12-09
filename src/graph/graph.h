@@ -12,7 +12,7 @@ class custom_graph {
 public:
     custom_graph() {}
 
-    bool filter_and_explore_graph(Priority p,std::string from, std::string to);
+    bool search_component_dependences(std::string from, std::string to);
     bool create_graph(std::string xml_location);
     const Graph get_graph();
     std::map<edge_t,int> edge_to_port_map;
