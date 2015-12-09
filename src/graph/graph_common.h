@@ -20,11 +20,20 @@ enum Priority{
     PRIORITY_ERROR
 };
 
-enum Component_Type{
+enum Component_Priority_Category{
     ROUND_ROBIN,
     PRIORITY,
     TDMA,
-    TYPE_ERROR
+    PRIORITY_CATEGORY_ERROR
+};
+
+enum Component_Type{
+  PROCESSOR,
+  BUS,
+  BRIDGE,
+  PERIPHERAL,
+  MEMORY,
+  TYPE_ERROR
 };
 
 class Custom_Vertex
@@ -34,6 +43,7 @@ public:
     std::string name;
     std::map<int,Priority> ports; //TO REFINE tipo aggiungere solo per Lay 4.
     Component_Type type;
+    Component_Priority_Category priority_category;
 };
 class Custom_Edge
 {

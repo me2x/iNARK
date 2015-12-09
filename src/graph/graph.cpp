@@ -77,6 +77,28 @@ Component_Type int_To_Type(int i){
     switch(i)
     {
     case 1:
+        return PROCESSOR;break;
+
+    case 2:
+        return BUS;break;
+
+    case 3:
+        return BRIDGE;break;
+
+    case 4:
+        return PERIPHERAL;break;
+	
+    case 5:
+        return MEMORY;break;
+
+    default:
+        return TYPE_ERROR;break;
+    }
+}
+Component_Priority_Category int_To_Priority_Handler(int i){
+   switch(i)
+    {
+    case 1:
         return ROUND_ROBIN;break;
 
     case 2:
@@ -86,11 +108,9 @@ Component_Type int_To_Type(int i){
         return TDMA;break;
 
     default:
-        return TYPE_ERROR;break;
+        return PRIORITY_CATEGORY_ERROR;break;
     }
 }
-
-
 
 bool custom_graph::create_graph(std::string xml)
 {
@@ -113,6 +133,13 @@ bool custom_graph::create_graph(std::string xml)
               if(v.second.get_child_optional("type")){
                   local_graph[vt].type=int_To_Type(v.second.get_child("type").get_value<int>());
               }
+              else
+              {
+                  local_graph[vt].type=BUS;//tmp da eliminare
+              }
+              if(v.second.get_child_optional("priority_handling")){
+                  local_graph[vt].priority_category=int_To_Priority_Handler(v.second.get_child("priority_handling").get_value<int>());
+              }
               vertex_map.insert(std::make_pair(local_graph[vt].name, vt));
               PRINT_DEBUG(local_graph[vt].layer);
           }//m_modules.insert(v.second.data());
@@ -125,7 +152,7 @@ bool custom_graph::create_graph(std::string xml)
                }
                else
                {
-                   local_graph[e].priority=int_to_Priority(NO_PRIORITY);
+                   local_graph[e].priority=NO_PRIORITY;
                }
                if (v.second.get_child_optional("to.port")){
                 edge_to_port_map.insert(std::make_pair<edge_t,int>(e,v.second.get_child("to.port").get_value<int>()));
@@ -142,25 +169,6 @@ bool custom_graph::create_graph(std::string xml)
 //true -> a path exists, false does not.
 bool custom_graph::search_component_dependences(std::string from, std::string to){
 
-
-#ifdef DEBUG
-    const char* name = "0123456789abcdefghilmnopqrstuvz";
-#endif
-    boost::filtered_graph<Graph,extern_edge_predicate_c ,extern_vertex_predicate_c> fg(local_graph,extern_edge_predicate_c(local_graph),extern_vertex_predicate_c(local_graph));
-       PRINT_DEBUG("fg edges number is: ");
-#ifdef DEBUG
-       boost::print_edges(fg,name);
-#endif
-    PRINT_DEBUG(vertex_map.at(from));
-    extern_visitor vis = extern_visitor(vertex_map.at(to));
-    try {
-      boost::breadth_first_search(
-        fg, vertex_map.at(from),boost::visitor(vis)
-      );
-    }
-    catch (int exception) {
-      return true;
-    }
 return false;
 }
 

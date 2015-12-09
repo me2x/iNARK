@@ -1,6 +1,6 @@
 #include "iNARKConfig.h"
 #include <iostream>
-
+#include <boost/lexical_cast.hpp>
 
 #ifndef DEBUG_HANDLER
 #define DEBUG_HANDLER

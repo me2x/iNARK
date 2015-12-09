@@ -55,7 +55,7 @@
                <priority>2</priority>
             </port>
          </ports>
-         <!--type>Processor</type-->
+         <type>1</type>
       </component>
       <component>
          <layer>4</layer>
@@ -75,6 +75,7 @@
             </port>
          </ports>
          <type>2</type>
+	 <priority_handling>2</priority_handling>
       </component>
       <component>
          <layer>4</layer>
@@ -96,7 +97,7 @@
                <priority>1</priority>
             </port>
          </ports>
-         <!--type>Processor</type-->
+         <type>1</type>
       </component>
       <component>
          <layer>4</layer>

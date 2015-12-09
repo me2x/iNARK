@@ -31,19 +31,19 @@ public:
 class extern_vertex_predicate_c {
 public:
   extern_vertex_predicate_c() : graph_m(0) {}
-  extern_vertex_predicate_c(Graph& g) : graph_m(&g) {}
+  extern_vertex_predicate_c(const Graph& g) : graph_m(&g) {}
   bool operator()(const vertex_t& vertex_id) const;
 private:
-  Graph* graph_m;
+  const Graph* graph_m;
 };
 
 class extern_edge_predicate_c {
 public:
   extern_edge_predicate_c() : graph_m(0) {}
-  extern_edge_predicate_c(Graph& g) : graph_m(&g) {}
+  extern_edge_predicate_c(const Graph& g) : graph_m(&g) {}
   bool operator()(const edge_t& edge_id) const;
 private:
-  Graph* graph_m;
+  const Graph* graph_m;
 };
 
 
