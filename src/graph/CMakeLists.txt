@@ -13,8 +13,9 @@ graph.cpp
 internal_graph.h
 internal_graph.cpp
 graph_common.h
-custom_visitor.h
-custom_visitor.cpp
+custom_visitors.h
+custom_visitors.cpp
+debug_msg_handler.hpp
 )
 
 add_library (graph ${GRAPH_SRCS})

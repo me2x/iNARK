@@ -5,7 +5,7 @@ project (iNARK)
 set (iNARK_VERSION_MAJOR 0)
 set (iNARK_VERSION_MINOR 0)
 
-set (DEBUG ON)
+set (DEBUG OFF CACHE BOOL "Some user specified option")
 
 # configure a header file to pass some of the CMake settings
 # to the source code

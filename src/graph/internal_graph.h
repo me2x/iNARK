@@ -6,5 +6,9 @@
 
 class internal_graph
        {
+public:
+    internal_graph (const Graph& g);
 
+private:
+    Internal_Graph ig;
 };

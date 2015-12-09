@@ -15,8 +15,8 @@ int main (int argc, char *argv[])
     custom_graph g = custom_graph();
     g.create_graph("aaa");
 
-    //internal_graph ig = internal_graph(g);
-    if (g.filter_and_explore_graph(MISSION_CRITICAL,"task_0", "task_1"))
+    internal_graph ig = internal_graph(g.get_graph());
+    if (g.filter_and_explore_graph(MISSION_CRITICAL,"task_2", "task_1"))
         return 0;
     else return 1;
 

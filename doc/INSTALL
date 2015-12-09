@@ -1,0 +1,3 @@
+boost: apt-get install libboost all o quel che l'è
+
+cmake: -DDEBUG:BOOL=ON/OFF a seconda se si vogliono le print di debug o meno

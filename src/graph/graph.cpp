@@ -29,6 +29,7 @@ Layer int_to_Layer(int i){
         return PHYSICAL;
         break;
     default:
+        return LAYER_ERROR;
         break;
     }
 }
@@ -43,6 +44,9 @@ Priority int_to_Priority(int i){
         break;
     case 3:
         return SAFETY_CRITICAL;
+        break;
+    default:
+        return PRIORITY_ERROR;
         break;
     }
 }
@@ -69,18 +73,30 @@ std::string Layer_to_String(Layer l){
         break;
     }
 }
+Component_Type int_To_Type(int i){
+    switch(i)
+    {
+    case 1:
+        return ROUND_ROBIN;break;
 
-struct xml_data{
-    std::set<Custom_Vertex> vertexes;
-    std::set<Custom_Edge> edges;
-};
+    case 2:
+        return PRIORITY;break;
+
+    case 3:
+        return TDMA;break;
+
+    default:
+        return TYPE_ERROR;break;
+    }
+}
+
 
 
 bool custom_graph::create_graph(std::string xml)
 {
        using boost::property_tree::ptree;
        ptree pt;
-       read_xml("/home/emanuele/iNARK/spec.xml",pt);
+       read_xml("/home/emanuele/iNARK/iNARK/spec.xml",pt);
        // create a typedef for the Graph type
        // Graph g;
            BOOST_FOREACH(ptree::value_type &v,pt.get_child("root.components"))
@@ -88,28 +104,54 @@ bool custom_graph::create_graph(std::string xml)
               vertex_t vt = boost::add_vertex(local_graph);
               local_graph[vt].layer=int_to_Layer((v.second.get_child("layer")).get_value<int>());
               local_graph[vt].name=(v.second.get_child("name")).get_value<std::string>();
+              if(v.second.get_child_optional("ports")){
+                  BOOST_FOREACH(ptree::value_type &i_v,v.second.get_child("ports"))
+                  {
+                      local_graph[vt].ports.insert(std::make_pair<int,Priority>(i_v.second.get_child("id").get_value<int>(),int_to_Priority(i_v.second.get_child("priority").get_value<int>())));
+                  }
+              }
+              if(v.second.get_child_optional("type")){
+                  local_graph[vt].type=int_To_Type(v.second.get_child("type").get_value<int>());
+              }
               vertex_map.insert(std::make_pair(local_graph[vt].name, vt));
-              std::cout<<local_graph[vt].layer<<std::endl;
+              PRINT_DEBUG(local_graph[vt].layer);
           }//m_modules.insert(v.second.data());
            BOOST_FOREACH(ptree::value_type &v,pt.get_child("root.edges"))
           {
                edge_t e; bool b;
-               boost::tie(e,b) = boost::add_edge(vertex_map.at(v.second.get_child("from").get_value<std::string>()),vertex_map.at(v.second.get_child("to").get_value<std::string>()),local_graph);
-               local_graph[e].priority=int_to_Priority(v.second.get_child("priority").get_value<int>());
-          }
+               boost::tie(e,b) = boost::add_edge(vertex_map.at(v.second.get_child("from.name").get_value<std::string>()),vertex_map.at(v.second.get_child("to.name").get_value<std::string>()),local_graph);
+               if (v.second.get_child_optional("priority")){
+                   local_graph[e].priority=int_to_Priority(v.second.get_child("priority").get_value<int>());
+               }
+               else
+               {
+                   local_graph[e].priority=int_to_Priority(NO_PRIORITY);
+               }
+               if (v.second.get_child_optional("to.port")){
+                edge_to_port_map.insert(std::make_pair<edge_t,int>(e,v.second.get_child("to.port").get_value<int>()));
+               }
+
+
+           }
+
 // DOES NOT HANDLES DOUBLE IN XML, creates a different vertex/edge.
+           //TODO handling of doubles.
            return true;
 }
 
-//true -> a path exists, false does not
-bool custom_graph::filter_and_explore_graph(Priority p,std::string from, std::string to){
+//true -> a path exists, false does not.
+bool custom_graph::search_component_dependences(std::string from, std::string to){
 
 
-const char* name = "0123456789";
-       boost::filtered_graph<Graph, custom_edge_predicate_c> fg(local_graph,custom_edge_predicate_c(local_graph,p));
-       std::cout<<"fg edges number is: ";boost::print_edges(fg,name);
-
-    std::cout<<vertex_map.at(from);
+#ifdef DEBUG
+    const char* name = "0123456789abcdefghilmnopqrstuvz";
+#endif
+    boost::filtered_graph<Graph, extern_vertex_predicate ,extern_edge_predicate_c> fg(local_graph,extern_vertex_predicate_c(local_graph),extern_edge_predicate_c(local_graph));
+       PRINT_DEBUG("fg edges number is: ");
+#ifdef DEBUG
+       boost::print_edges(fg,name);
+#endif
+    PRINT_DEBUG(vertex_map.at(from));
     my_visitor vis = my_visitor(vertex_map.at(to));
     try {
       boost::breadth_first_search(
@@ -122,41 +164,8 @@ const char* name = "0123456789";
 return false;
 }
 
-    /*for(int i = 0; i<=5; i++)
-    {
-        vertex_t v = boost::add_vertex(g);
-        g[v].layer=int_to_Layer(i+1);
-        std::cout<<g[v].layer<<std::endl;
-    }*/
-   /*for (int i= 0; i<5; i++)
-    {
-        edge_t e; bool b;
-        boost::tie(e,b) = boost::add_edge(boost::vertex(i,g),vertex(i+1,g),g);
-        g[e].priority=MISSION_CRITICAL;
-    }
-        // get the property map for vertex indices
-          typedef boost::property_map<Graph, boost::vertex_index_t>::type IndexMap;
-          IndexMap index = get(boost::vertex_index, g);
-
-          std::cout << "vertices(g) = ";
-          typedef boost::graph_traits<Graph>::vertex_iterator vertex_iter;
-          std::pair<vertex_iter, vertex_iter> vp;
-          for (vp = vertices(g); vp.first != vp.second; ++vp.first)
-          {
-              vertex_t ver = *vp.first;
-              std::cout<<Layer_to_String(g[ver].layer)<<std::endl;
-          }
 
 
-              //std::cout << index[*vp.first] <<  " ";
-          std::cout << std::endl;
-          boost::graph_traits<Graph>::edge_iterator ei, ei_end;
-              for (tie(ei, ei_end) = edges(g); ei != ei_end; ++ei)
-              {
-                  edge_t ed = *ei;
-                  std::cout<<g[ed].priority<<std::endl;
-                  std::cout<<g[source(ed,g)].name<<" to "<<g[target(ed,g)].name<<std::endl;
-              }
-*/
-
-
+const Graph custom_graph::get_graph(){
+    return local_graph;
+}
