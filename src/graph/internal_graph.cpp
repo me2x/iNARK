@@ -24,7 +24,7 @@ internal_graph::internal_graph(const Graph& g){
 
     //per ogni edge, crea andata e ritorno nel bidirezionale. tranne che per gli intra layer. verranno aggiunti inter layer nel pezzo del "collasso"
     edge_iter ei, ei_end;
-    for (boost::tie(ei, ei_end) = edges(g); ei != ei_end; ++ei)
+    for (boost::tie(ei, ei_end) = boost::edges(g); ei != ei_end; ++ei)
     {
         inner_edge_t e; bool b;
         if(g[boost::source(*ei,g)].layer!=g[boost::target(*ei,g)].layer)

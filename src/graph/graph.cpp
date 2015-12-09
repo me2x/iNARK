@@ -146,7 +146,7 @@ bool custom_graph::search_component_dependences(std::string from, std::string to
 #ifdef DEBUG
     const char* name = "0123456789abcdefghilmnopqrstuvz";
 #endif
-    boost::filtered_graph<Graph, extern_vertex_predicate_c ,extern_edge_predicate_c> fg(local_graph,extern_vertex_predicate_c(local_graph),extern_edge_predicate_c(local_graph));
+    boost::filtered_graph<Graph,extern_edge_predicate_c ,extern_vertex_predicate_c> fg(local_graph,extern_edge_predicate_c(local_graph),extern_vertex_predicate_c(local_graph));
        PRINT_DEBUG("fg edges number is: ");
 #ifdef DEBUG
        boost::print_edges(fg,name);

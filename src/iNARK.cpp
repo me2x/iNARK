@@ -16,7 +16,7 @@ int main (int argc, char *argv[])
     g.create_graph("aaa");
 
     internal_graph ig = internal_graph(g.get_graph());
-    if (g.filter_and_explore_graph(MISSION_CRITICAL,"task_2", "task_1"))
+    if (g.search_component_dependences("task_2", "task_1"))
         return 0;
     else return 1;
 

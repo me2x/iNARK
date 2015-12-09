@@ -52,11 +52,11 @@ protected:
   vertex_t destination_vertex_m;
 public:
   extern_visitor(vertex_t destination_vertex_l);
-  void initialize_vertex(const vertex_t s, const boost::filtered_graph<Graph, extern_vertex_predicate_c,extern_edge_predicate_c>  g) const ;
-  void discover_vertex(const vertex_t s, const boost::filtered_graph<Graph, extern_vertex_predicate_c,extern_edge_predicate_c>  g)const ;
-  void examine_vertex(const vertex_t s, const boost::filtered_graph<Graph, extern_vertex_predicate_c,extern_edge_predicate_c>  g) const ;
-  void examine_edge(const edge_t e, const boost::filtered_graph<Graph, extern_vertex_predicate_c,extern_edge_predicate_c>  g) const ;
-  void edge_relaxed(const edge_t e, const boost::filtered_graph<Graph, extern_vertex_predicate_c,extern_edge_predicate_c>  g) const ;
-  void edge_not_relaxed(const edge_t e, const boost::filtered_graph<Graph, extern_vertex_predicate_c,extern_edge_predicate_c>  g) const ;
-  void finish_vertex(const vertex_t s, const boost::filtered_graph<Graph, extern_vertex_predicate_c,extern_edge_predicate_c>  g) const ;
+  void initialize_vertex(const vertex_t s, const boost::filtered_graph<Graph, extern_edge_predicate_c,extern_vertex_predicate_c>  g) const ;
+  void discover_vertex(const vertex_t s, const boost::filtered_graph<Graph, extern_edge_predicate_c,extern_vertex_predicate_c>  g)const ;
+  void examine_vertex(const vertex_t s, const boost::filtered_graph<Graph, extern_edge_predicate_c,extern_vertex_predicate_c>  g) const ;
+  void examine_edge(const edge_t e, const boost::filtered_graph<Graph, extern_edge_predicate_c,extern_vertex_predicate_c>  g) const ;
+  void edge_relaxed(const edge_t e, const boost::filtered_graph<Graph, extern_edge_predicate_c,extern_vertex_predicate_c>  g) const ;
+  void edge_not_relaxed(const edge_t e, const boost::filtered_graph<Graph, extern_edge_predicate_c,extern_vertex_predicate_c>  g) const ;
+  void finish_vertex(const vertex_t s, const boost::filtered_graph<Graph, extern_edge_predicate_c,extern_vertex_predicate_c>  g) const ;
 };
