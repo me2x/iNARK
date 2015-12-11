@@ -8,7 +8,8 @@
 #include "graph/internal_graph.h"
 int main (int argc, char *argv[])
 {
-#ifdef DEBUG
+  try{
+      #ifdef DEBUG
     std::cout<<"asd"<<std::endl;
 #endif
 
@@ -18,7 +19,13 @@ int main (int argc, char *argv[])
     internal_graph ig = internal_graph(g.get_graph());
     if (g.search_component_dependences("task_2", "task_1"))
         return 0;
-    else return 1;
+    else return 100;
+
+  }
+   catch(const std::exception&)  // Consider using a custom exception type for intentional throws. A good idea might be a `return_exception`.
+    {                             
+        return EXIT_FAILURE;
+    }
 
 
 }

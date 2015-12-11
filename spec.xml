@@ -143,6 +143,17 @@
          <!--type>Peripheral</type-->
       </component>
       <component>
+         <layer>4</layer>
+         <name>PE_2</name>
+         <ports>
+            <port>
+               <id>1</id>
+               <priority>2</priority>
+            </port>
+         </ports>
+         <!--type>Peripheral</type-->
+      </component>
+      <component>
          <layer>5</layer>
          <name>board_1</name>
       </component>
@@ -357,6 +368,28 @@
          </from>
          <to>
             <name>board_1</name>
+            <!--port>1</port-->
+         </to>
+         <!--priority>2</priority-->
+      </edge>
+      <edge>
+         <from>
+            <name>PE_2</name>
+            <!--port>1</port-->
+         </from>
+         <to>
+            <name>PE_1</name>
+            <!--port>1</port-->
+         </to>
+         <!--priority>2</priority-->
+      </edge>
+      <edge>
+         <from>
+            <name>PE_2</name>
+            <!--port>1</port-->
+         </from>
+         <to>
+            <name>board_2</name>
             <!--port>1</port-->
          </to>
          <!--priority>2</priority-->

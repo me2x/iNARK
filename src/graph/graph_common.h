@@ -63,4 +63,5 @@ typedef boost::graph_traits<Graph>::vertex_iterator vertex_iter;
 typedef boost::graph_traits<Internal_Graph>::vertex_iterator inner_vertex_iter;
 typedef boost::graph_traits<Graph>::edge_iterator edge_iter;
 typedef boost::graph_traits<Internal_Graph>::edge_iterator inner_edge_iter;
+typedef boost::graph_traits<Graph>::out_edge_iterator ext_out_edge_iter;
 #endif
