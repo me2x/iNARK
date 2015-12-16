@@ -45,17 +45,58 @@ bool extern_edge_predicate_c::operator()(const edge_t& edge_id) const{
     return (l_src==l_dst);
 }
 
-//cercare se vertice ha una sola connessione.
-//prova a vedere se puo aver senso un visitor??????? penso possa bastare vertex.get_edges.count o qualcosa del genere
-extern_visitor::extern_visitor(vertex_t destination_vertex_l): destination_vertex_m(destination_vertex_l) {
-    PRINT_DEBUG (destination_vertex_m);
+
+extern_visitor::extern_visitor(std::vector<vertex_t>& discovered,vertex_t& source_par): discovered_vertexes(&discovered),source(&source_par) {
+    PRINT_DEBUG ("using extern visitor" );
 
 }
-void extern_visitor::initialize_vertex(const vertex_t s, const boost::filtered_graph<Graph, extern_edge_predicate_c,extern_vertex_predicate_c>  g) const {}
-void extern_visitor::discover_vertex(const vertex_t s, const boost::filtered_graph<Graph, extern_edge_predicate_c,extern_vertex_predicate_c>  g)const {}
-void extern_visitor::examine_vertex(const vertex_t s, const boost::filtered_graph<Graph, extern_edge_predicate_c,extern_vertex_predicate_c>  g) const {}
-void extern_visitor::examine_edge(const edge_t e, const boost::filtered_graph<Graph, extern_edge_predicate_c,extern_vertex_predicate_c>  g) const {}
-void extern_visitor::edge_relaxed(const edge_t e, const boost::filtered_graph<Graph, extern_edge_predicate_c,extern_vertex_predicate_c>  g) const {}
-void extern_visitor::edge_not_relaxed(const edge_t e, const boost::filtered_graph<Graph, extern_edge_predicate_c,extern_vertex_predicate_c>  g) const {}
-void extern_visitor::finish_vertex(const vertex_t s, const boost::filtered_graph<Graph, extern_edge_predicate_c,extern_vertex_predicate_c>  g) const {}
+void extern_visitor::initialize_vertex(const vertex_t s, const boost::filtered_graph<Graph, extern_edge_predicate_c,extern_vertex_predicate_c>  g) const {
+  PRINT_DEBUG("init vertex: "+boost::lexical_cast<std::string>(s));
+}
+void extern_visitor::discover_vertex(const vertex_t s, const boost::filtered_graph<Graph, extern_edge_predicate_c,extern_vertex_predicate_c>  g)const {
+  discovered_vertexes->push_back(s);
+  PRINT_DEBUG("found vertex: "+boost::lexical_cast<std::string>(s));
+}
+void extern_visitor::examine_vertex(const vertex_t s, const boost::filtered_graph<Graph, extern_edge_predicate_c,extern_vertex_predicate_c>  g) const {
+  PRINT_DEBUG("examine vertex: "+boost::lexical_cast<std::string>(s));
+}
+void extern_visitor::examine_edge(const edge_t e, const boost::filtered_graph<Graph, extern_edge_predicate_c,extern_vertex_predicate_c>  g) const { 
+  { //non va bene xk essendo il grafo non diretto perdo collegamento tra porta e componente: l'edge infatti viene girato a piacimento mentre il to e il from restano gli stessi.
+  PRINT_DEBUG("examining edge: start. edge is: "+boost::lexical_cast<std::string>(e)+"target node is: "+g[(boost::target(e,g))].name+
+  " and the target name is: "+boost::lexical_cast<std::string>(g[e].to_port.component_name)+
+  "and the target port is: "+boost::lexical_cast<std::string>(g[e].to_port.component_port)+
+  + " source node is: "+g[(boost::source(e,g))].name+
+  " and the source name is: "+boost::lexical_cast<std::string>(g[e].from_port.component_name)+
+  "and the source port is: "+boost::lexical_cast<std::string>(g[e].from_port.component_port)
+  
+    
+  
+  );
+/*  if (g[(boost::target(e,g))].type == PROCESSOR) return;
+   if ((results_map_attr)->count(boost::target(e,g))==0)
+   {
+     PRINT_DEBUG("examining edge: step1");
+     (results_map_attr)->insert(std::make_pair<vertex_t,Priority>(boost::target(e,g),g[(boost::target(e,g))].ports.at(g[e].to_port)));
+     PRINT_DEBUG("examining edge: step2");
+   }
+   else if (((results_map_attr)->at(boost::target(e,g))) > g[(boost::target(e,g))].ports.at(g[e].to_port))
+   {
+     PRINT_DEBUG("examining edge: step3");
+     ((results_map_attr)->at(boost::target(e,g))) = g[(boost::target(e,g))].ports.at(g[e].to_port);
+     PRINT_DEBUG("examining edge: step4");
+   }
+  PRINT_DEBUG("examining edge: end");   
+ */ 
+}
+}
+void extern_visitor::edge_relaxed(const edge_t e, const boost::filtered_graph<Graph, extern_edge_predicate_c,extern_vertex_predicate_c>  g) const {
+  PRINT_DEBUG("edge edge_relaxed");
+}
+void extern_visitor::edge_not_relaxed(const edge_t e, const boost::filtered_graph<Graph, extern_edge_predicate_c,extern_vertex_predicate_c>  g) const {
+  PRINT_DEBUG("edge not edge_not_relaxed");
+}
+void extern_visitor::finish_vertex(const vertex_t s, const boost::filtered_graph<Graph, extern_edge_predicate_c,extern_vertex_predicate_c>  g) const {
+  PRINT_DEBUG("finalize vvertex "+boost::lexical_cast<std::string>(s));
+  if (s == *source) throw 0;
+}
 

@@ -15,8 +15,7 @@ public:
     bool search_component_dependences(std::string from, std::string to);
     bool create_graph(std::string xml_location);
     const Graph get_graph();
-    std::map<edge_t,int> edge_to_port_map;
-
+    
 private:
     Graph local_graph;
     std::map<std::string, vertex_t> vertex_map;

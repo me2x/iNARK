@@ -1,5 +1,6 @@
 #include <boost/graph/filtered_graph.hpp>
 #include <boost/graph/breadth_first_search.hpp>
+#include <boost/graph/undirected_dfs.hpp>
 #include "graph_common.h"
 
 
@@ -47,11 +48,12 @@ private:
 };
 
 
-class extern_visitor :public boost::default_bfs_visitor{
+class extern_visitor :public boost::default_dfs_visitor{
 protected:
-  vertex_t destination_vertex_m;
+  std::vector<vertex_t>* discovered_vertexes;
+  vertex_t* source;
 public:
-  extern_visitor(vertex_t destination_vertex_l);
+  extern_visitor(std::vector<vertex_t>& discovered,vertex_t& source_par);
   void initialize_vertex(const vertex_t s, const boost::filtered_graph<Graph, extern_edge_predicate_c,extern_vertex_predicate_c>  g) const ;
   void discover_vertex(const vertex_t s, const boost::filtered_graph<Graph, extern_edge_predicate_c,extern_vertex_predicate_c>  g)const ;
   void examine_vertex(const vertex_t s, const boost::filtered_graph<Graph, extern_edge_predicate_c,extern_vertex_predicate_c>  g) const ;

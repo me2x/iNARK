@@ -8,6 +8,7 @@
 #include "graph/internal_graph.h"
 int main (int argc, char *argv[])
 {
+  //TODO destructors
   try{
       #ifdef DEBUG
     std::cout<<"asd"<<std::endl;

@@ -124,22 +124,34 @@ bool custom_graph::create_graph(std::string xml)
               vertex_t vt = boost::add_vertex(local_graph);
               local_graph[vt].layer=int_to_Layer((v.second.get_child("layer")).get_value<int>());
               local_graph[vt].name=(v.second.get_child("name")).get_value<std::string>();
-              if(v.second.get_child_optional("ports")){
-                  BOOST_FOREACH(ptree::value_type &i_v,v.second.get_child("ports"))
-                  {
-                      local_graph[vt].ports.insert(std::make_pair<int,Priority>(i_v.second.get_child("id").get_value<int>(),int_to_Priority(i_v.second.get_child("priority").get_value<int>())));
-                  }
+              if(v.second.get_child_optional("ports"))
+	      {
+                local_graph[vt].ports = std::map<int,Priority>();
+		BOOST_FOREACH(ptree::value_type &i_v,v.second.get_child("ports"))
+                {
+		  local_graph[vt].ports.insert(std::make_pair<int,Priority>(i_v.second.get_child("id").get_value<int>(),int_to_Priority(i_v.second.get_child("priority").get_value<int>())));
+		}
               }
-              if(v.second.get_child_optional("type")){
-                  local_graph[vt].type=int_To_Type(v.second.get_child("type").get_value<int>());
+              else
+	      {
+		local_graph[vt].ports = std::map<int,Priority>();
+	      }
+              if(v.second.get_child_optional("type"))
+	      {
+		local_graph[vt].type=int_To_Type(v.second.get_child("type").get_value<int>());
               }
               else
               {
-                  local_graph[vt].type=BUS;//tmp da eliminare
+                local_graph[vt].type=BUS;//TODO tmp da eliminare
               }
-              if(v.second.get_child_optional("priority_handling")){
-                  local_graph[vt].priority_category=int_To_Priority_Handler(v.second.get_child("priority_handling").get_value<int>());
+              if(v.second.get_child_optional("priority_handling"))
+	      {
+		local_graph[vt].priority_category=int_To_Priority_Handler(v.second.get_child("priority_handling").get_value<int>());
               }
+              else
+	      {
+		local_graph[vt].priority_category=ROUND_ROBIN;
+	      }
               vertex_map.insert(std::make_pair(local_graph[vt].name, vt));
               PRINT_DEBUG(local_graph[vt].layer);
           }//m_modules.insert(v.second.data());
@@ -155,9 +167,21 @@ bool custom_graph::create_graph(std::string xml)
                    local_graph[e].priority=NO_PRIORITY;
                }
                if (v.second.get_child_optional("to.port")){
-                edge_to_port_map.insert(std::make_pair<edge_t,int>(e,v.second.get_child("to.port").get_value<int>()));
+		   local_graph[e].to_port.component_port =  v.second.get_child("to.port").get_value<int>();
+		   local_graph[e].to_port.component_name =  v.second.get_child("to.name").get_value<std::string>();
                }
-
+               else
+	       {
+		 local_graph[e].to_port.component_port = 0;
+	       }
+	       if (v.second.get_child_optional("from.port")){
+		   local_graph[e].from_port.component_port =  v.second.get_child("from.port").get_value<int>();
+		   local_graph[e].from_port.component_name =  v.second.get_child("from.name").get_value<std::string>();
+               }
+               else
+	       {
+		 local_graph[e].from_port.component_port = 0;
+	       }
 
            }
 
