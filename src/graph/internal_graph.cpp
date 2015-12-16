@@ -270,12 +270,12 @@ internal_graph::internal_graph(const Graph& g){
 	  // mappa vertici annullata per via del remove !
 	  // prova solo clear, non dovrebbe modificare la mappa dei vertici ma solo togliere i collegamenti. dovrebbe andar bene uguale
 #ifdef DEBUG
-	  PRINT_DEBUG("neighbour map: for vertex: "+inner_copy[*tmp_iter].name);
+	  PRINT_DEBUG("neighbor map: for vertex: "+inner_copy[*tmp_iter].name);
 	  std::map<vertex_t,Priority>::iterator debug_vertex_priority, debug_vertex_priority_end;
 	  debug_vertex_priority_end = results_map.end();
 	  for(debug_vertex_priority=results_map.begin();debug_vertex_priority!=debug_vertex_priority_end; ++debug_vertex_priority)
 	  {
-	    PRINT_DEBUG("neighbour map: neighbour is: "+inner_copy[(*debug_vertex_priority).first].name+" and its priority is: "+boost::lexical_cast<std::string>((*debug_vertex_priority).second));
+	    PRINT_DEBUG("neighbor map: neighbour is: "+inner_copy[(*debug_vertex_priority).first].name+" and its priority is: "+boost::lexical_cast<std::string>((*debug_vertex_priority).second));
 	  }
 	  
 #endif
@@ -293,19 +293,19 @@ internal_graph::internal_graph(const Graph& g){
 	      break;//identify the node of thee processing unit
 	    }
 	  }
-	  
+	  //build fg (no much sense i think i can just modify the visitor in order to work with inner copy)
 	  boost::filtered_graph<Graph,extern_edge_predicate_c ,extern_vertex_predicate_c> tmp_fg(inner_copy,extern_edge_predicate_c(inner_copy),extern_vertex_predicate_c(inner_copy));
 	  std::vector<vertex_t> discovered;
 	  extern_visitor vis(discovered, source);
 	  try {
 	    using namespace boost;
 	    PRINT_DEBUG("perform the search");
-	    depth_first_search(tmp_fg, root_vertex(source).visitor(vis) //TODO rifare con il seguente algoritmo: for each PU, for each node identify adjacent nodes, save priority from thier edges. remove node. BFS o DFS da source se trova nodi adj li raggiunge da un altro path quindi quegli edge vanno considerati e si prende max(weigth) tra gli edge rimossi raggiunti dalla ricerca
+	    depth_first_search(tmp_fg, root_vertex(source).visitor(vis) //research
                  );
 	  
 	  }
 	  catch (int x) {
-	    PRINT_DEBUG("found an int in search, the result is: " + boost::lexical_cast<std::string>(x));
+	    PRINT_DEBUG("found an int in search, the result is: " + boost::lexical_cast<std::string>(x)); //should return 0 when finalizes the source vertex
 	  }
 	  PRINT_DEBUG("size of discovered is: "+boost::lexical_cast<std::string>(discovered.size()));
 	  Priority p = NO_PRIORITY;
@@ -313,7 +313,7 @@ internal_graph::internal_graph(const Graph& g){
 	  for(std::vector<vertex_t>::iterator discovered_it= discovered.begin();discovered_it!=discovered_it_end; ++discovered_it)
 	    {
 	      if (results_map.find(*discovered_it) != results_map.end())
-		if (p < results_map.at(*discovered_it))
+		if (p < results_map.at(*discovered_it)) //gets the max priority between the discovered neighbors
 		  p = results_map.at(*discovered_it);
 	    }
 	  PRINT_DEBUG("priority of the component "+tmp_graph_copy_for_research[*tmp_iter].name+" toward the processing unit "+ inner_copy[source].name+" is: "+boost::lexical_cast<std::string>(p));
