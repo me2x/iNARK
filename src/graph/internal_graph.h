@@ -8,7 +8,7 @@ class internal_graph
        {
 public:
     internal_graph (const Graph& g);
-
+    bool search_path (std::string from, std::string to, Priority p);
 private:
     Internal_Graph ig;
     vertex_t get_node_reference (std::string);

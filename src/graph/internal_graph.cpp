@@ -361,3 +361,18 @@ vertex_t internal_graph::get_node_reference(std::string str)
   }
   return NULL;
 }
+bool internal_graph::search_path(std::__cxx11::string from, std::__cxx11::string to, Priority p)
+{
+  boost::filtered_graph<Internal_Graph,inner_edge_predicate_c> ifg (ig,inner_edge_predicate_c(ig,p));
+      inner_visitor vis = inner_visitor(get_node_reference(to));
+    try {
+      boost::breadth_first_search(
+        ifg, get_node_reference(from),boost::visitor(vis)
+      );
+    }
+    catch (int exception) {
+      return true;
+    }
+return false;
+}
+
