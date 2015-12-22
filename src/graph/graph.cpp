@@ -164,7 +164,7 @@ bool custom_graph::create_graph(std::string xml)
                }
                else
                {
-                   local_graph[e].priority=NO_PRIORITY;
+                   local_graph[e].priority=SAFETY_CRITICAL;
                }
                if (v.second.get_child_optional("to.port")){
 		   local_graph[e].to_port.component_port =  v.second.get_child("to.port").get_value<int>();

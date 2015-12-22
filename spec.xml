@@ -112,6 +112,7 @@
                <priority>2</priority>
             </port>
          </ports>
+	 <type>3</type>
       </component>
       <component>
          <layer>4</layer>
@@ -130,6 +131,7 @@
                <priority>1</priority>
             </port>
          </ports>
+	 <priority_handling>3</priority_handling>
       </component>
       <component>
          <layer>4</layer>

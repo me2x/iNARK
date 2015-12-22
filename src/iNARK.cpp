@@ -18,7 +18,7 @@ int main (int argc, char *argv[])
     g.create_graph("aaa");
 
     internal_graph ig = internal_graph(g.get_graph());
-    if (ig.search_path("task_2", "task_1",SAFETY_CRITICAL))
+    if (ig.search_path("OS_2", "task_1",SAFETY_CRITICAL,CONTROLLER))
         return 0;
     else return 100;
 

@@ -1,29 +1,33 @@
 #include "custom_visitors.h"
 
-
+//in verita non serve. per l'idea nuova di grafo basta tagliare i vertici. resta piu complessa la costruzione.
 bool inner_edge_predicate_c::operator()(const inner_edge_t& edge_id) const{
-      Priority type = (*graph_m)[edge_id].priority;
-      return (type >= threshold);
+      //Priority type = (*graph_m)[edge_id].priority;
+      //inedge recupera entranti nel target, recupera vertici che è porta di un os. una volta fatto questo su ogni edge if dest == os && layer == 2 then cut else keep.
+      return (1);//(*graph_m)[boost::source(edge_id,(*graph_m))].layer< (*graph_m)[boost::target(edge_id,(*graph_m))].layer && type >= threshold )|| (*graph_m)[boost::source(edge_id,(*graph_m))].layer > (*graph_m)[boost::target(edge_id,(*graph_m))].layer;
     }
 
-
+bool inner_vertex_predicate_c::operator()(const vertex_t& vertex_id) const{
+    Layer layer = (*graph_m)[vertex_id].layer;
+    return (layer <= threshold);
+}
 inner_visitor::inner_visitor(vertex_t destination_vertex_l): destination_vertex_m(destination_vertex_l) {
     PRINT_DEBUG("prova");
     PRINT_DEBUG (destination_vertex_m);
 }
-void inner_visitor::initialize_vertex(const vertex_t s, const boost::filtered_graph<Internal_Graph, inner_edge_predicate_c>  g) const {}
-void inner_visitor::discover_vertex(const vertex_t s, const boost::filtered_graph<Internal_Graph, inner_edge_predicate_c>  g)const {
-    PRINT_DEBUG("exploring, found vertex: "<<s);
+void inner_visitor::initialize_vertex(const vertex_t s, const boost::filtered_graph<Internal_Graph, inner_edge_predicate_c,inner_vertex_predicate_c>  g) const {}
+void inner_visitor::discover_vertex(const vertex_t s, const boost::filtered_graph<Internal_Graph, inner_edge_predicate_c,inner_vertex_predicate_c>  g)const {
+    PRINT_DEBUG("exploring, found vertex: "<<g[s].name);
 
     if (destination_vertex_m == s)
       throw(2);
 }
 
-void inner_visitor::examine_vertex(const vertex_t s, const boost::filtered_graph<Internal_Graph, inner_edge_predicate_c>  g) const {}
-void inner_visitor::examine_edge(const inner_edge_t e, const boost::filtered_graph<Internal_Graph, inner_edge_predicate_c>  g) const {}
-void inner_visitor::edge_relaxed(const inner_edge_t e, const boost::filtered_graph<Internal_Graph, inner_edge_predicate_c>  g) const {}
-void inner_visitor::edge_not_relaxed(const inner_edge_t e, const boost::filtered_graph<Internal_Graph, inner_edge_predicate_c>  g) const {}
-void inner_visitor::finish_vertex(const vertex_t s, const boost::filtered_graph<Internal_Graph, inner_edge_predicate_c>  g) const {}
+void inner_visitor::examine_vertex(const vertex_t s, const boost::filtered_graph<Internal_Graph, inner_edge_predicate_c,inner_vertex_predicate_c>  g) const {}
+void inner_visitor::examine_edge(const inner_edge_t e, const boost::filtered_graph<Internal_Graph, inner_edge_predicate_c,inner_vertex_predicate_c>  g) const {}
+void inner_visitor::edge_relaxed(const inner_edge_t e, const boost::filtered_graph<Internal_Graph, inner_edge_predicate_c,inner_vertex_predicate_c>  g) const {}
+void inner_visitor::edge_not_relaxed(const inner_edge_t e, const boost::filtered_graph<Internal_Graph, inner_edge_predicate_c,inner_vertex_predicate_c>  g) const {}
+void inner_visitor::finish_vertex(const vertex_t s, const boost::filtered_graph<Internal_Graph, inner_edge_predicate_c,inner_vertex_predicate_c>  g) const {}
 
 
 

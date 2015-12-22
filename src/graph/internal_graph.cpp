@@ -321,7 +321,8 @@ internal_graph::internal_graph(const Graph& g){
 	  inner_edge_t e; bool b;
 	  boost::tie(e,b) = boost::add_edge(get_node_reference(lvl_4_to_3_map.at(inner_copy[source].name)),get_node_reference(tmp_graph_copy_for_research[*tmp_iter].name),ig);
           ig[e].priority= p;
-	  boost::tie(e,b) = boost::add_edge(get_node_reference(tmp_graph_copy_for_research[*tmp_iter].name),get_node_reference(lvl_4_to_3_map.at(inner_copy[source].name)),ig);
+	  if(!(ig[get_node_reference(tmp_graph_copy_for_research[*tmp_iter].name)].priority_category == TDMA || ig[get_node_reference(tmp_graph_copy_for_research[*tmp_iter].name)].type == BRIDGE))
+	    boost::tie(e,b) = boost::add_edge(get_node_reference(tmp_graph_copy_for_research[*tmp_iter].name),get_node_reference(lvl_4_to_3_map.at(inner_copy[source].name)),ig);
           ig[e].priority= p;
 	  
 	  //TODO add controls on component type in order to avoid back edges if tdma.
@@ -361,10 +362,34 @@ vertex_t internal_graph::get_node_reference(std::string str)
   }
   return NULL;
 }
-bool internal_graph::search_path(std::__cxx11::string from, std::__cxx11::string to, Priority p)
+bool internal_graph::search_path(std::__cxx11::string from, std::__cxx11::string to, Priority p,Layer l)
 {
-  boost::filtered_graph<Internal_Graph,inner_edge_predicate_c> ifg (ig,inner_edge_predicate_c(ig,p));
+  vertex_t target_os;
+  boost::graph_traits<Internal_Graph>::out_edge_iterator edges_out, edges_out_end;
+  boost::tie (edges_out,edges_out_end) = boost::out_edges(get_node_reference(to),ig);
+  for(;edges_out != edges_out_end; ++edges_out)
+  {
+    PRINT_DEBUG("considered edge is: ("+ig[boost::source(*edges_out,ig)].name+" , "+ig[boost::target(*edges_out,ig)].name+")");
+    if (ig[boost::target(*edges_out,ig)].layer == CONTROLLER)
+    {
+      PRINT_DEBUG("if condition is true" );
+      target_os = boost::target(*edges_out,ig);
+      break;
+    }
+  }
+  PRINT_DEBUG ("starting search. target OS is: "+ig[target_os].name);
+  boost::filtered_graph<Internal_Graph,inner_edge_predicate_c,inner_vertex_predicate_c> ifg (ig,inner_edge_predicate_c(ig,CONTROLLER,get_node_reference(to)),inner_vertex_predicate_c(ig,l));
       inner_visitor vis = inner_visitor(get_node_reference(to));
+          
+#ifdef DEBUG
+  std::ofstream myfile;
+  myfile.open ("/home/emanuele/Documents/tmp_graph/aaafiltrato.dot");
+  boost::write_graphviz(myfile, ifg,make_vertex_writer(boost::get(&Custom_Vertex::layer, ifg),boost::get (&Custom_Vertex::name, ifg),boost::get(&Custom_Vertex::ports, ifg), boost::get(&Custom_Vertex::type,ifg ), boost::get(&Custom_Vertex::priority_category,ifg))
+      ,/*make_edge_writer(boost::get(&Custom_Edge::priority,ig),boost::get(&Custom_Edge::from_port,ig),boost::get(&Custom_Edge::to_port,ig))*/
+      boost::make_label_writer(boost::get(&Custom_Edge::priority,ig)));
+  myfile.close();
+#endif
+     
     try {
       boost::breadth_first_search(
         ifg, get_node_reference(from),boost::visitor(vis)
@@ -373,6 +398,7 @@ bool internal_graph::search_path(std::__cxx11::string from, std::__cxx11::string
     catch (int exception) {
       return true;
     }
+    
 return false;
 }
 
