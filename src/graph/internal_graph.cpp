@@ -17,6 +17,7 @@ internal_graph::internal_graph(const Graph& g){
 
     }
 
+    //prova
     //per ogni edge, crea andata e ritorno nel bidirezionale. tranne che per gli intra layer e i link tra 4 e 5th livello. 3 to 4th lvl vanno creati dopo aver collassato
     //il 4th lvl guardando le priorita delle porte. 4 to 5 vanno mappati subito dopo il collasso a causa di possibile presenza di componenti mappati su stesso nodo collassato presenti su piu board
     edge_iter ei, ei_end;
