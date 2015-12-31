@@ -3,21 +3,70 @@
 
 internal_graph::internal_graph(const Graph& g){
     //collassa grafo
-    
+    priority_to_ports_map();
+    lvl_4_to_3_map();
     std::pair<vertex_iter, vertex_iter> vp;
     for (vp = vertices(g); vp.first != vp.second; ++vp.first)
     {
-        vertex_t vt = boost::add_vertex(ig);
-        ig[vt].layer=g[*vp.first].layer;
-        ig[vt].name=g[*vp.first].name;
-	ig[vt].ports=g[*vp.first].ports;
-	ig[vt].type=g[*vp.first].type;
-	ig[vt].priority_category=g[*vp.first].priority_category;
-        PRINT_DEBUG(ig[vt].name);
-
+	if (g[*vp.first].layer == CONTROLLER || g[*vp.first].priority_category == PRIORITY)
+	{  
+	  vertex_t vtx_vect[PRIORITY_ENUM_SIZE];
+	  for(int i = 0; i < vtx_vect.size(); i++) 
+	  {
+	    vertex_t vt =  boost::add_vertex(ig);
+	    ig[vt].layer=g[*vp.first].layer;
+	    ig[vt].name=g[*vp.first].name+"_"+i;
+	    ig[vt].type=g[*vp.first].type;
+	//    ig[vt].priority_category=g[*vp.first].priority_category;
+	    PRINT_DEBUG(ig[vt].name);
+	  }
+	}
+	else if (g[*vp.first].layer == RESOURCE || g[*vp.first].priority_category == PRIORITY)
+	{
+	  int different_priorities = 0;
+	  for (auto x : g[*vp.first].ports)
+	  {
+	    if (priority_to_ports_map.count(x.second)== 0)
+	    {
+	      std::vector<int> tmp ();
+	      tmp.push_back(x.first);
+	      priority_to_ports_map.insert(std::make_pair<int,std::vector<int>>(x.second,tmp));
+	    }
+	    else 
+	    {
+	      priority_to_ports_map.at(x.second).push_back(x.first);
+	    }
+	  }
+	  for (auto x: priority_to_ports_map)
+	  {
+	    vertex_t vt =  boost::add_vertex(ig);
+	    ig[vt].layer=g[*vp.first].layer;
+	    ig[vt].name=g[*vp.first].name+"_"+x.first;
+	    ig[vt].type=g[*vp.first].type;
+	    //ig[vt].priority_category=g[*vp.first].priority_category;
+	    PRINT_DEBUG(ig[vt].name);//edge di priorita su porte da creare qua.
+	    for (auto y: priority_to_ports_map)
+	      if (y.first < x.first)
+	      {
+		 inner_edge_t e; bool b;
+		 boost::tie(e,b) = boost::add_edge(get_node_reference(g[*vp.first].name+"_"+x.first),get_node_reference(g[*vp.first].name+"_"+y.first),ig);
+	      }
+	  }
+	}
+	else
+	{
+	  vertex_t vt =  boost::add_vertex(ig);
+	  ig[vt].layer=g[*vp.first].layer;
+	  ig[vt].name=g[*vp.first].name;
+	    //ig[vt].ports = g[*vp.first].ports;
+	  ig[vt].type=g[*vp.first].type;
+	 // ig[vt].priority_category=g[*vp.first].priority_category;
+	  PRINT_DEBUG(ig[vt].name);
+	}
     }
 
-    //prova
+    //da rifare. da risistemare i 4th lvl. non eliminare brutalmente ma collegarli alla "priorita" desiderata. conviene farlo qua? credo di si. 
+    //risistemare la parte dopo: non mi servono piu i 3 to 4 edges, basta lasciare ogni os collegato al suo so. mantenere intra layer, solo spostarli su priorità desiderata.
     //per ogni edge, crea andata e ritorno nel bidirezionale. tranne che per gli intra layer e i link tra 4 e 5th livello. 3 to 4th lvl vanno creati dopo aver collassato
     //il 4th lvl guardando le priorita delle porte. 4 to 5 vanno mappati subito dopo il collasso a causa di possibile presenza di componenti mappati su stesso nodo collassato presenti su piu board
     edge_iter ei, ei_end;
@@ -203,7 +252,7 @@ internal_graph::internal_graph(const Graph& g){
 	  }
     }
     
-    //build lay 3 to 4 connections with the ports algorithm che hai pensato qualche giorno fa e gia scordato :D
+//questa parte penso che sia da eliminare
     //for every processing unit (type = PROCESSOR)
     //create a new graph that is a copy of fg2.
     //remove all other PU

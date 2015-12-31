@@ -10,107 +10,6 @@
 
 
 
-Layer int_to_Layer(int i){
-    switch(i)
-    {
-    case 1:
-        return FUNCTION;
-        break;
-    case 2:
-        return TASK;
-        break;
-    case 3:
-        return CONTROLLER;
-        break;
-    case 4:
-        return RESOURCE;
-        break;
-    case 5:
-        return PHYSICAL;
-        break;
-    default:
-        return LAYER_ERROR;
-        break;
-    }
-}
-Priority int_to_Priority(int i){
-    switch(i)
-    {
-    case 1:
-        return NO_PRIORITY;
-        break;
-    case 2:
-        return MISSION_CRITICAL;
-        break;
-    case 3:
-        return SAFETY_CRITICAL;
-        break;
-    default:
-        return PRIORITY_ERROR;
-        break;
-    }
-}
-std::string Layer_to_String(Layer l){
-    switch(l)
-    {
-    case FUNCTION:
-        return "function";
-        break;
-    case TASK:
-        return "task" ;
-        break;
-    case CONTROLLER:
-        return "controller";
-        break;
-    case RESOURCE:
-        return "resource";
-        break;
-    case PHYSICAL:
-        return "physical";
-        break;
-    default:
-        return "error";
-        break;
-    }
-}
-Component_Type int_To_Type(int i){
-    switch(i)
-    {
-    case 1:
-        return PROCESSOR;break;
-
-    case 2:
-        return BUS;break;
-
-    case 3:
-        return BRIDGE;break;
-
-    case 4:
-        return PERIPHERAL;break;
-	
-    case 5:
-        return MEMORY;break;
-
-    default:
-        return TYPE_ERROR;break;
-    }
-}
-Component_Priority_Category int_To_Priority_Handler(int i){
-   switch(i)
-    {
-    case 1:
-        return ROUND_ROBIN;break;
-
-    case 2:
-        return PRIORITY;break;
-
-    case 3:
-        return TDMA;break;
-
-    default:
-        return PRIORITY_CATEGORY_ERROR;break;
-    }
-}
 
 bool custom_graph::create_graph(std::string xml)
 {
@@ -126,10 +25,10 @@ bool custom_graph::create_graph(std::string xml)
               local_graph[vt].name=(v.second.get_child("name")).get_value<std::string>();
               if(v.second.get_child_optional("ports"))
 	      {
-                local_graph[vt].ports = std::map<int,Priority>();
+                local_graph[vt].ports = std::map<int,int>();
 		BOOST_FOREACH(ptree::value_type &i_v,v.second.get_child("ports"))
                 {
-		  local_graph[vt].ports.insert(std::make_pair<int,Priority>(i_v.second.get_child("id").get_value<int>(),int_to_Priority(i_v.second.get_child("priority").get_value<int>())));
+		  local_graph[vt].ports.insert(std::make_pair<int,int>(i_v.second.get_child("id").get_value<int>(),i_v.second.get_child("priority").get_value<int>()));
 		}
               }
               else

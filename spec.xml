@@ -4,13 +4,6 @@
       <component>
          <layer>1</layer>
          <name>func_2</name>
-         <!--ports>
-            <port>
-                <id></id>
-                <priority></priority>
-            </port>
-         </ports>
-        <type></type-->
       </component>
       <component>
          <layer>2</layer>
@@ -23,13 +16,7 @@
       <component>
          <layer>3</layer>
          <name>OS_2</name>
-         <!--ports>
-            <port>
-                <id></id>
-                <priority></priority>
-            </port>
-         </ports-->
-         <type>1</type>
+         <priority_handling>2</priority_handling>
       </component>
       <component>
          <layer>2</layer>
@@ -38,13 +25,7 @@
       <component>
          <layer>3</layer>
          <name>OS_1</name>
-         <!--ports>
-            <port>
-                <id></id>
-                <priority></priority>
-            </port>
-         </ports-->
-         <type>1</type>
+	 <priority_handling>2</priority_handling>
       </component>
       <component>
          <layer>4</layer>
@@ -194,42 +175,32 @@
          </from>
          <to>
             <name>P_1</name>
-            <!--port>1</port-->
          </to>
-         <!--priority>2</priority-->
       </edge>
       <edge>
          <from>
             <name>func_2</name>
-            <!--port>1</port-->
          </from>
          <to>
             <name>task_2</name>
-            <!--port>1</port-->
          </to>
-         <!--priority>2</priority-->
       </edge>
       <edge>
          <from>
             <name>task_2</name>
-            <!--port>1</port-->
          </from>
          <to>
             <name>OS_2</name>
-            <!--port>1</port-->
          </to>
          <priority>2</priority>
       </edge>
       <edge>
          <from>
             <name>OS_2</name>
-            <!--port>1</port-->
          </from>
          <to>
             <name>P_2</name>
-            <!--port>1</port-->
          </to>
-         <!--priority>2</priority-->
       </edge>
       <edge>
          <from>
@@ -240,7 +211,6 @@
             <name>bus_1</name>
             <port>1</port>
          </to>
-         <!--priority>2</priority-->
       </edge>
       <edge>
          <from>
@@ -251,7 +221,6 @@
             <name>bridge_1</name>
             <port>1</port>
          </to>
-         <!--priority>2</priority-->
       </edge>
       <edge>
          <from>
@@ -311,90 +280,68 @@
       <edge>
          <from>
             <name>bus_1</name>
-            <!--port>1</port-->
          </from>
          <to>
             <name>board_1</name>
-            <!--port>1</port-->
          </to>
          <priority>2</priority>
       </edge>
       <edge>
          <from>
             <name>memory_1</name>
-            <!--port>1</port-->
          </from>
          <to>
             <name>board_1</name>
-            <!--port>1</port-->
          </to>
-         <!--priority>2</priority-->
       </edge>
       <edge>
          <from>
             <name>P_2</name>
-            <!--port>1</port-->
          </from>
          <to>
             <name>board_2</name>
-            <!--port>1</port-->
          </to>
-         <!--priority>2</priority-->
       </edge>
       <edge>
          <from>
             <name>bus_2</name>
-            <!--port>1</port-->
          </from>
          <to>
             <name>board_2</name>
-            <!--port>1</port-->
          </to>
          <priority>2</priority>
       </edge>
       <edge>
          <from>
             <name>bridge_1</name>
-            <!--port>1</port-->
          </from>
          <to>
             <name>board_2</name>
-            <!--port>1</port-->
          </to>
-         <!--priority>2</priority-->
       </edge>
       <edge>
          <from>
             <name>PE_1</name>
-            <!--port>1</port-->
          </from>
          <to>
             <name>board_1</name>
-            <!--port>1</port-->
          </to>
-         <!--priority>2</priority-->
       </edge>
       <edge>
          <from>
             <name>PE_2</name>
-            <!--port>1</port-->
          </from>
          <to>
             <name>PE_1</name>
-            <!--port>1</port-->
          </to>
-         <!--priority>2</priority-->
       </edge>
       <edge>
          <from>
             <name>PE_2</name>
-            <!--port>1</port-->
          </from>
          <to>
             <name>board_2</name>
-            <!--port>1</port-->
          </to>
-         <!--priority>2</priority-->
       </edge>
    </edges>
 </root>
