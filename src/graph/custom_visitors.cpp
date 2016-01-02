@@ -41,7 +41,7 @@ bool extern_vertex_predicate_c::operator()(const vertex_t& vertex_id) const{
 }
 
 //se layer from o layer to è diverso da 4, buttalo. da rifare
-bool extern_edge_predicate_c::operator()(const edge_t& edge_id) const{
+bool extern_edge_predicate_c::operator()(const inner_edge_t& edge_id) const{
     //Priority type = (*graph_m)[edge_id].priority;
     
     Layer l_src = (*graph_m)[boost::source(edge_id,*graph_m)].layer;
@@ -54,17 +54,17 @@ extern_visitor::extern_visitor(std::vector<vertex_t>& discovered,vertex_t& sourc
     PRINT_DEBUG ("using extern visitor" );
 
 }
-void extern_visitor::initialize_vertex(const vertex_t s, const boost::filtered_graph<Graph, extern_edge_predicate_c,extern_vertex_predicate_c>  g) const {
+void extern_visitor::initialize_vertex(const vertex_t s, const boost::filtered_graph<Internal_Graph, extern_edge_predicate_c,extern_vertex_predicate_c>  g) const {
   PRINT_DEBUG("init vertex: "+boost::lexical_cast<std::string>(s));
 }
-void extern_visitor::discover_vertex(const vertex_t s, const boost::filtered_graph<Graph, extern_edge_predicate_c,extern_vertex_predicate_c>  g)const {
+void extern_visitor::discover_vertex(const vertex_t s, const boost::filtered_graph<Internal_Graph, extern_edge_predicate_c,extern_vertex_predicate_c>  g)const {
   discovered_vertexes->push_back(s);
   PRINT_DEBUG("found vertex: "+boost::lexical_cast<std::string>(s));
 }
-void extern_visitor::examine_vertex(const vertex_t s, const boost::filtered_graph<Graph, extern_edge_predicate_c,extern_vertex_predicate_c>  g) const {
+void extern_visitor::examine_vertex(const vertex_t s, const boost::filtered_graph<Internal_Graph, extern_edge_predicate_c,extern_vertex_predicate_c>  g) const {
   PRINT_DEBUG("examine vertex: "+boost::lexical_cast<std::string>(s));
 }
-void extern_visitor::examine_edge(const edge_t e, const boost::filtered_graph<Graph, extern_edge_predicate_c,extern_vertex_predicate_c>  g) const { 
+void extern_visitor::examine_edge(const inner_edge_t e, const boost::filtered_graph<Internal_Graph, extern_edge_predicate_c,extern_vertex_predicate_c>  g) const { 
   { //non va bene xk essendo il grafo non diretto perdo collegamento tra porta e componente: l'edge infatti viene girato a piacimento mentre il to e il from restano gli stessi.
   PRINT_DEBUG("examining edge: start. edge is: "+boost::lexical_cast<std::string>(e)+"target node is: "+g[(boost::target(e,g))].name+
   " and the target name is: "+boost::lexical_cast<std::string>(g[e].to_port.component_name)+
@@ -93,13 +93,13 @@ void extern_visitor::examine_edge(const edge_t e, const boost::filtered_graph<Gr
  */ 
 }
 }
-void extern_visitor::edge_relaxed(const edge_t e, const boost::filtered_graph<Graph, extern_edge_predicate_c,extern_vertex_predicate_c>  g) const {
+void extern_visitor::edge_relaxed(const inner_edge_t e, const boost::filtered_graph<Internal_Graph, extern_edge_predicate_c,extern_vertex_predicate_c>  g) const {
   PRINT_DEBUG("edge edge_relaxed");
 }
-void extern_visitor::edge_not_relaxed(const edge_t e, const boost::filtered_graph<Graph, extern_edge_predicate_c,extern_vertex_predicate_c>  g) const {
+void extern_visitor::edge_not_relaxed(const inner_edge_t e, const boost::filtered_graph<Internal_Graph, extern_edge_predicate_c,extern_vertex_predicate_c>  g) const {
   PRINT_DEBUG("edge not edge_not_relaxed");
 }
-void extern_visitor::finish_vertex(const vertex_t s, const boost::filtered_graph<Graph, extern_edge_predicate_c,extern_vertex_predicate_c>  g) const {
+void extern_visitor::finish_vertex(const vertex_t s, const boost::filtered_graph<Internal_Graph, extern_edge_predicate_c,extern_vertex_predicate_c>  g) const {
   PRINT_DEBUG("finalize vvertex "+boost::lexical_cast<std::string>(s));
   if (s == *source) throw 0;
 }

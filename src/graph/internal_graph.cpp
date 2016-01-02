@@ -3,55 +3,69 @@
 
 internal_graph::internal_graph(const Graph& g){
     //collassa grafo
-    priority_to_ports_map();
-    lvl_4_to_3_map();
+    priority_to_ports_map.clear();
+    lvl_4_to_3_map.clear();
+    std::map<vertex_t,std::map<int,vertex_t> > lvl_3_tracer,lvl_4_tracer;
     std::pair<vertex_iter, vertex_iter> vp;
     for (vp = vertices(g); vp.first != vp.second; ++vp.first)
     {
-	if (g[*vp.first].layer == CONTROLLER || g[*vp.first].priority_category == PRIORITY)
+	if (g[*vp.first].layer == CONTROLLER && g[*vp.first].priority_category == PRIORITY)
 	{  
 	  vertex_t vtx_vect[PRIORITY_ENUM_SIZE];
-	  for(int i = 0; i < vtx_vect.size(); i++) 
+	  std::map<int,vertex_t> tmp;
+	  
+	  for(int i = 0; i < PRIORITY_ENUM_SIZE; i++) 
 	  {
 	    vertex_t vt =  boost::add_vertex(ig);
 	    ig[vt].layer=g[*vp.first].layer;
-	    ig[vt].name=g[*vp.first].name+"_"+i;
+	    ig[vt].name=g[*vp.first].name+"_"+boost::lexical_cast<std::string>(i);
 	    ig[vt].type=g[*vp.first].type;
+	    tmp.insert(std::make_pair(i,vt));
 	//    ig[vt].priority_category=g[*vp.first].priority_category;
 	    PRINT_DEBUG(ig[vt].name);
+	    if (i!= 0)
+	    {
+	      inner_edge_t e; bool b;
+	      boost::tie(e,b) = boost::add_edge(vt,get_node_reference(g[*vp.first].name+"_"+boost::lexical_cast<std::string>(i-1)),ig);
+	    }
 	  }
+	  lvl_3_tracer.insert(std::make_pair(*vp.first,tmp));
 	}
-	else if (g[*vp.first].layer == RESOURCE || g[*vp.first].priority_category == PRIORITY)
+	else if (g[*vp.first].layer == RESOURCE && g[*vp.first].priority_category == PRIORITY)
 	{
 	  int different_priorities = 0;
-	  for (auto x : g[*vp.first].ports)
+	  for (auto& x : g[*vp.first].ports)
 	  {
 	    if (priority_to_ports_map.count(x.second)== 0)
 	    {
-	      std::vector<int> tmp ();
+	      std::vector<int> tmp;
 	      tmp.push_back(x.first);
-	      priority_to_ports_map.insert(std::make_pair<int,std::vector<int>>(x.second,tmp));
+	      priority_to_ports_map.insert(std::make_pair(x.second,tmp));
 	    }
 	    else 
 	    {
 	      priority_to_ports_map.at(x.second).push_back(x.first);
 	    }
 	  }
-	  for (auto x: priority_to_ports_map)
+	  std::map<int,vertex_t> tmp;
+	  for (auto& x: priority_to_ports_map)
 	  {
 	    vertex_t vt =  boost::add_vertex(ig);
 	    ig[vt].layer=g[*vp.first].layer;
-	    ig[vt].name=g[*vp.first].name+"_"+x.first;
+	    ig[vt].name=g[*vp.first].name+"_"+boost::lexical_cast<std::string>(x.first);
 	    ig[vt].type=g[*vp.first].type;
+	    tmp.insert(std::make_pair(x.first,vt));
 	    //ig[vt].priority_category=g[*vp.first].priority_category;
 	    PRINT_DEBUG(ig[vt].name);//edge di priorita su porte da creare qua.
 	    for (auto y: priority_to_ports_map)
 	      if (y.first < x.first)
 	      {
 		 inner_edge_t e; bool b;
-		 boost::tie(e,b) = boost::add_edge(get_node_reference(g[*vp.first].name+"_"+x.first),get_node_reference(g[*vp.first].name+"_"+y.first),ig);
+		 boost::tie(e,b) = boost::add_edge(get_node_reference(g[*vp.first].name+"_"+boost::lexical_cast<std::string>(x.first)),get_node_reference(g[*vp.first].name+"_"+boost::lexical_cast<std::string>(y.first)),ig);
 	      }
 	  }
+	  lvl_4_tracer.insert(std::make_pair(*vp.first,tmp));
+	  priority_to_ports_map.clear();
 	}
 	else
 	{
@@ -73,8 +87,150 @@ internal_graph::internal_graph(const Graph& g){
     for (boost::tie(ei, ei_end) = boost::edges(g); ei != ei_end; ++ei)
     {
         inner_edge_t e; bool b;
-        if(g[boost::source(*ei,g)].layer!=g[boost::target(*ei,g)].layer && g[boost::source(*ei,g)].layer!= PHYSICAL && g[boost::target(*ei,g)].layer != PHYSICAL)
+	vertex_t source,target;
+	source = boost::source(*ei,g);
+	target = boost::target(*ei,g);
+	PRINT_DEBUG("PROVAAAAAAAAAAAAAAAAAA" +boost::lexical_cast<std::string>(g[source].layer+g[target].layer));
+	PRINT_DEBUG("PROVAAAAAAAAAAAAAAAAAA" +boost::lexical_cast<std::string>(lvl_3_tracer.size()));
+	PRINT_DEBUG("PROVAAAAAAAAAAAAAAAAAA" +boost::lexical_cast<std::string>(lvl_4_tracer.size()));
+		      PRINT_DEBUG("the from component is: "+g[*ei].from_port.component_name);
+	      PRINT_DEBUG("the source component is: "+g[source].name);
+	//fai con uno switch su somma layers. caso base: andata e ritorno, vale per 1
+	//3: layer 2to3, priority?custom else caso base
+	//5: 3 sdoppiato? 4 sdoppiato? custom.
+	//6: layer 4 to 4 priority?custom else caso base
+	//7: devo riprender i 4 to 4 sdoppiati e propagare. usa una mappa variabile interna.
+	switch(g[source].layer+g[target].layer)
+	{
+	  case 1:
+	  {
+	      //boost::tie(e,b) = boost::add_edge(source,target,ig); sbagliatissimo. i vertex_t identifier sono diversi tra i due grafi ora!
+	    boost::tie(e,b) = boost::add_edge(get_node_reference(g[source].name),get_node_reference(g[target].name),ig);
+	    PRINT_DEBUG("function layer edge target: "+ig[boost::target(e,ig)].name);
+	    boost::tie(e,b) = boost::add_edge(get_node_reference(g[target].name),get_node_reference(g[source].name),ig);
+	    PRINT_DEBUG("function layer edge target: "+ig[boost::target(e,ig)].name);
+	    break;
+	  }
+	  case 3:
+	  {
+	    vertex_t third_layer_vertex = ((g[source].layer == CONTROLLER)?source:target);
+	    vertex_t other_vertex = ((g[source].layer == CONTROLLER)?target:source);
+	    if(g[third_layer_vertex].priority_category == PRIORITY)
+	    {
+	      
+	     boost::tie(e,b) = boost::add_edge(get_node_reference(g[third_layer_vertex].name+"_"+boost::lexical_cast<std::string>(g[*ei].priority)),get_node_reference(g[other_vertex].name),ig);
+	     boost::tie(e,b) = boost::add_edge(get_node_reference(g[other_vertex].name),get_node_reference(g[third_layer_vertex].name+"_"+boost::lexical_cast<std::string>(g[*ei].priority)),ig);
+	    }
+	    else
+	    {
+	    boost::tie(e,b) = boost::add_edge(get_node_reference(g[third_layer_vertex].name),get_node_reference(g[other_vertex].name),ig);
+	    boost::tie(e,b) = boost::add_edge(get_node_reference(g[other_vertex].name),get_node_reference(g[third_layer_vertex].name),ig);
+	    }
+	    break;
+	  }
+	  case 5:
+	  {
+	    vertex_t third_layer_vertex = ((g[source].layer == CONTROLLER)?source:target);
+	    vertex_t other_vertex = ((g[source].layer == CONTROLLER)?target:source);
+	    //impossible to have an OS mapped on something different than a processor. the processor cannot be splitted in more components. so the 4th layer item is never splitted here.
+	    if(g[third_layer_vertex].priority_category == PRIORITY )
+	    {
+	      	    //the third is: TODO add third layer links with all priorities
+	      for(int i = 0; i < PRIORITY_ENUM_SIZE; i++)
+	      {
+		boost::tie(e,b) = boost::add_edge(get_node_reference(g[third_layer_vertex].name+"_"+boost::lexical_cast<std::string>(i)),get_node_reference(g[other_vertex].name),ig);
+		boost::tie(e,b) = boost::add_edge(get_node_reference(g[other_vertex].name),get_node_reference(g[third_layer_vertex].name+"_"+boost::lexical_cast<std::string>(i)),ig);
+	      }
+	    }
+	    else
+	    {
+	    boost::tie(e,b) = boost::add_edge(get_node_reference(g[third_layer_vertex].name),get_node_reference(g[other_vertex].name),ig);
+	    boost::tie(e,b) = boost::add_edge(get_node_reference(g[other_vertex].name),get_node_reference(g[third_layer_vertex].name),ig);
+	    }
+	    break;
+	  }
+	  case 6://4th to 4th, splittati qua.
+	  {
+	    PRINT_DEBUG("case 6");
+	    if (g[source].priority_category==PRIORITY && g[target].priority_category == PRIORITY)
+	    {
+	      //sdoppia tutto usare source e.port[id] 
+	      PRINT_DEBUG("case 6, both priority");
+	      PRINT_DEBUG("case 6,source component port priority is: "+boost::lexical_cast<std::string>(g[source].ports.at(g[*ei].from_port.component_port)));
+	      //PRINT_DEBUG("target component port priority is: "+boost::lexical_cast<std::string>(g[target].ports.at(g[*ei].to_port.component_port)));
+	      boost::tie(e,b) = boost::add_edge(lvl_4_tracer.at(source).at(g[source].ports.at(g[*ei].from_port.component_port)),lvl_4_tracer.at(target).at(g[target].ports.at(g[*ei].to_port.component_port)),ig);
+	      boost::tie(e,b) = boost::add_edge(lvl_4_tracer.at(target).at(g[target].ports.at(g[*ei].to_port.component_port)),lvl_4_tracer.at(source).at(g[source].ports.at(g[*ei].from_port.component_port)),ig);
+    }
+	    else if (g[source].priority_category!=PRIORITY && g[target].priority_category == PRIORITY)
+	    {
+	      PRINT_DEBUG("case 6, second priority. target component is: "+g[target].name);
+	    //  PRINT_DEBUG("case 6,source component port priority is: "+boost::lexical_cast<std::string>(/*g[source].ports.at(*/g[*ei].to_port.component_port));
+	     PRINT_DEBUG("case 6, target component port priority is: "+boost::lexical_cast<std::string>(g[target].ports.at(g[*ei].to_port.component_port)));
+	     PRINT_DEBUG("case 6, target graph in internal graph is"+ig[lvl_4_tracer.at(target).at(g[target].ports.at(g[*ei].to_port.component_port))].name);
+	     boost::tie(e,b) = boost::add_edge(get_node_reference(g[source].name),lvl_4_tracer.at(target).at(g[target].ports.at(g[*ei].to_port.component_port)),ig);
+	     if(g[source].priority_category!= TDMA)
+	       boost::tie(e,b) = boost::add_edge(lvl_4_tracer.at(target).at(g[target].ports.at(g[*ei].to_port.component_port)),get_node_reference(g[source].name),ig);
+	
+	    }
+	    else if(g[source].priority_category==PRIORITY && g[target].priority_category != PRIORITY)
+	    {
+	      PRINT_DEBUG("case 6, first priority. source component is: "+g[source].name);
+	     // PRINT_DEBUG("case 6,source component port priority is: "+boost::lexical_cast<std::string>(/*g[source].ports.at(*/g[*ei].from_port.component_port));
+	      PRINT_DEBUG("case 6,source component port priority is: "+boost::lexical_cast<std::string>(g[source].ports.at(g[*ei].from_port.component_port)));
+	      PRINT_DEBUG("case 6, source graph in internal graph is"+ig[lvl_4_tracer.at(source).at(g[source].ports.at(g[*ei].from_port.component_port))].name);
+	      boost::tie(e,b) = boost::add_edge(lvl_4_tracer.at(source).at(g[source].ports.at(g[*ei].from_port.component_port)),get_node_reference(g[target].name),ig);
+	      if(g[target].priority_category!= TDMA)
+		boost::tie(e,b) = boost::add_edge(get_node_reference(g[target].name),lvl_4_tracer.at(source).at(g[source].ports.at(g[*ei].from_port.component_port)),ig);
+	    }
+	    else
+	    {
+	      PRINT_DEBUG("case 6, both no priority");
+	      boost::tie(e,b) = boost::add_edge(get_node_reference(g[source].name),get_node_reference(g[target].name),ig);
+	      boost::tie(e,b) = boost::add_edge(get_node_reference(g[target].name),get_node_reference(g[source].name),ig);
+	    }
+	      break;
+	  }
+		
+	  case 7: 
+	  {
+	    PRINT_DEBUG("case 7, start");
+	    vertex_t fourth_layer_vertex = ((g[source].layer == RESOURCE)?source:target);
+	    vertex_t other_vertex = ((g[source].layer == RESOURCE)?target:source);
+	    auto iter = lvl_4_tracer.find(fourth_layer_vertex);
+	    if (iter != lvl_4_tracer.end())
+	    {
+	      PRINT_DEBUG("case 7, found, the node is: "+g[fourth_layer_vertex].name);
+	      PRINT_DEBUG("case 7, found, the other node is: "+g[other_vertex].name);
+	      for (auto& a : (*iter).second)
+	      {
+		PRINT_DEBUG("case 7, iterating, internal node is: "+ig[a.second].name);
+		boost::tie(e,b) = boost::add_edge(get_node_reference(g[other_vertex].name),get_node_reference(ig[a.second].name),ig);
+		boost::tie(e,b) = boost::add_edge(get_node_reference(ig[a.second].name),get_node_reference(g[other_vertex].name),ig);
+	      }
+	    }
+	    else
+	    {
+	      PRINT_DEBUG("case 7, else branch");
+	      boost::tie(e,b) = boost::add_edge(get_node_reference(g[source].name),get_node_reference(g[target].name),ig);
+	      boost::tie(e,b) = boost::add_edge(get_node_reference(g[target].name),get_node_reference(g[source].name),ig);
+	    }
+	   break; 
+	  }
+	  default:
+	  {
+	    throw std::runtime_error ("ERROR, rebuilding edges layers sum not valid");
+	    break;
+	  }
+	
+	
+	
+	
+	
+	
+	}
+     /*   if((g[boost::source(*ei,g)].layer== TASK && g[boost::target(*ei,g)].layer == CONTROLLER) || (g[boost::source(*ei,g)].layer!= CONTROLLER && g[boost::target(*ei,g)].layer != TASK))
         {
+	  
             boost::tie(e,b) = boost::add_edge(boost::source(*ei,g),boost::target(*ei,g),ig);
             ig[e].priority= g[*ei].priority;
 	    PRINT_DEBUG(boost::target(e,ig));
@@ -84,10 +240,10 @@ internal_graph::internal_graph(const Graph& g){
             PRINT_DEBUG(boost::target(e,ig));
 	    if(g[boost::source(*ei,g)].layer== CONTROLLER && g[boost::target(*ei,g)].layer == RESOURCE)
 	     {
-	       lvl_4_to_3_map.insert(std::make_pair<std::string,std::string>(g[boost::target(*ei,g)].name,g[boost::source(*ei,g)].name));
+	       lvl_4_to_3_map.insert(std::make_pair(g[boost::target(*ei,g)].name,g[boost::source(*ei,g)].name));
 	     }
         }
-       
+       */
 	
     }
 
@@ -98,39 +254,60 @@ internal_graph::internal_graph(const Graph& g){
 #ifdef DEBUG
     const char* name = "0123456789abcdefghilmnopqrstuvz";
 #endif
-    Graph fg2; 
+    Internal_Graph fg2; 
  
-    boost::copy_graph(g, fg2);
-    boost::filtered_graph<Graph,extern_edge_predicate_c ,extern_vertex_predicate_c> fg(fg2,extern_edge_predicate_c(fg2),extern_vertex_predicate_c(fg2));
+    boost::copy_graph(ig, fg2);
+    boost::filtered_graph<Internal_Graph,extern_edge_predicate_c ,extern_vertex_predicate_c> fg(fg2,extern_edge_predicate_c(fg2),extern_vertex_predicate_c(fg2));
        PRINT_DEBUG("fg edges number is: ");
 #ifdef DEBUG
        boost::print_edges(fg,name);
 #endif
   
+#ifdef DEBUG
+  std::ofstream myfile2;
+  myfile2.open ("/home/emanuele/Documents/tmp_graph/aaafiltrato.dot");
+  boost::write_graphviz(myfile2, fg,make_vertex_writer(boost::get(&Custom_Vertex::layer, fg),boost::get (&Custom_Vertex::name, fg),boost::get(&Custom_Vertex::ports, fg), boost::get(&Custom_Vertex::type,fg ), boost::get(&Custom_Vertex::priority_category,fg))
+      ,/*make_edge_writer(boost::get(&Custom_Edge::priority,ig),boost::get(&Custom_Edge::from_port,ig),boost::get(&Custom_Edge::to_port,ig))*/
+      boost::make_label_writer(boost::get(&Custom_Edge::priority,ig)));
+  myfile2.close();
+#endif
     bool flag_for_collapse = true;
     std::map <std::string, std::vector<std::string> > collapse_maps;
     // init collapse maps with all the lay4 to lay5 edges
+   
     vertex_iter vi_init, vi_end_init;
     boost::tie(vi_init, vi_end_init) = boost::vertices(fg2);
+    PRINT_DEBUG("collapse map init");
     for (; vi_init != vi_end_init; ++vi_init) 
     {
       if (fg2[*vi_init].layer == RESOURCE)
       {
-	collapse_maps.insert(std::make_pair<std::string,std::vector<std::string> >(fg2[*vi_init].name,std::vector<std::string>()));
+	PRINT_DEBUG("collapse map resource layer recognized");
+	collapse_maps.insert(std::make_pair(fg2[*vi_init].name,std::vector<std::string>()));
 	//out edges
-	ext_out_edge_iter ext_e,ext_e_end;
-	boost::tie(ext_e,ext_e_end)=boost::out_edges(*vi_init, fg2);
+	PRINT_DEBUG("collapse map in edge iterator");
+	boost::graph_traits<Internal_Graph>::in_edge_iterator ext_e,ext_e_end;
+	PRINT_DEBUG("collapse map in edge iterator created");
+	boost::tie(ext_e,ext_e_end)=boost::in_edges(*vi_init, fg2);
+	PRINT_DEBUG("collapse map in edge iterator created and tied");
 	for (; ext_e != ext_e_end; ++ext_e)
 	{
+	  PRINT_DEBUG("collapse map inside loop");
 	  vertex_t source, dest;
 	  source = boost::source(*ext_e, fg2);
 	  dest = boost::target(*ext_e, fg2);
 	  vertex_t tmp_vtx = (source == *vi_init)?dest:source;
 	  if (fg2[tmp_vtx].layer == PHYSICAL)
-	  (collapse_maps.at(fg2[*vi_init].name)).push_back(fg2[tmp_vtx].name);
+	  {
+	    PRINT_DEBUG("collapse map inside if");
+	    (collapse_maps.at(fg2[*vi_init].name)).push_back(fg2[tmp_vtx].name);
+	    boost::remove_edge(get_node_reference(fg2[*vi_init].name),get_node_reference(fg2[tmp_vtx].name),ig);
+	    boost::remove_edge(get_node_reference(fg2[tmp_vtx].name),get_node_reference(fg2[*vi_init].name),ig);
+	  }
 	}
       }
     }
+    PRINT_DEBUG("collapse map init end");
     
     
     //collapse vertices and update the map.
@@ -143,21 +320,21 @@ internal_graph::internal_graph(const Graph& g){
       {
 	++next;
 #ifdef DEBUG
-	std::string str = "out edges size for node: "+ boost::lexical_cast<std::string>(*vi)+ " is: " + boost::lexical_cast<std::string>(boost::out_degree(*vi,fg));
+	std::string str = "collapse process: out edges size for node: "+ fg[(*vi)].name+ " is: " + boost::lexical_cast<std::string>(boost::in_degree(*vi,fg));
 	PRINT_DEBUG (str);
-	str = "out edges size for node: "+ ((get_node_reference(fg[*vi].name)!= NULL) ?(boost::lexical_cast<std::string>( get_node_reference(fg[*vi].name))):"NULL") + " on the original graph is: " + boost::lexical_cast<std::string>(boost::out_degree(*vi,g));
+	str = "collapse process: out edges size for node: "+ ((get_node_reference(fg[*vi].name)!= NULL) ?(ig[get_node_reference(fg[*vi].name)].name):"NULL") + " on the original graph is: " + boost::lexical_cast<std::string>(boost::in_degree(*vi,g));
 	PRINT_DEBUG (str);
 #endif	
-	if(boost::out_degree(*vi,fg)==1 && fg[*vi].type !=PROCESSOR)
+	if(boost::in_degree(*vi,fg)==1 && boost::out_degree(*vi,fg)==1 && fg[*vi].type !=PROCESSOR)
 	{
-	  PRINT_DEBUG("collassing component "+ boost::lexical_cast<std::string>(*vi));
+	  PRINT_DEBUG("collapse process: collassing component "+ fg2[(*vi)].name);
 	  vertex_t vt = get_node_reference(fg[*vi].name);
 	  if (vt != NULL) //la seconda run non entra perchè non trova il nodo in get component refernce. 
 	  {
 	    //prendi edge
-	    boost::graph_traits<boost::filtered_graph<Graph,extern_edge_predicate_c ,extern_vertex_predicate_c> >::out_edge_iterator e,e_end;
+	    boost::graph_traits<boost::filtered_graph<Internal_Graph,extern_edge_predicate_c ,extern_vertex_predicate_c> >::in_edge_iterator e,e_end;
 	    vertex_t source, dest,supernode;
-	    boost::tie(e,e_end)=boost::out_edges(*vi, fg);
+	    boost::tie(e,e_end)=boost::in_edges(*vi, fg);
 	    for (; e != e_end; ++e)
 	    {
 	      source = boost::source(*e, fg);
@@ -168,24 +345,27 @@ internal_graph::internal_graph(const Graph& g){
 	    std::vector<std::string> tmp;
 	    if( collapse_maps_iterator != collapse_maps.end())
 	    {
-	      PRINT_DEBUG("found the iterator reference to vertex_t");
+	      PRINT_DEBUG("collapse process: found the iterator reference to vertex_t");
 	       tmp = collapse_maps.at(fg2[*vi].name);
 	       collapse_maps.erase(collapse_maps_iterator);
 	    }
 	    else
 	    {
-	      PRINT_DEBUG("ERROR node not found in collapse map");
-	      throw std::runtime_error ("ERROR, node not found in collapse map");
+	      PRINT_DEBUG("node not found in collapse map");
+	      //throw std::runtime_error ("ERROR, node not found in collapse map");
+	      tmp.push_back(fg2[*vi].name);
+	      collapse_maps.insert(std::make_pair(fg2[*vi].name,tmp));
+	      
 	    }
 	    //recupera altri edges
 	    std::vector<std::string>::iterator vt_vect_iter,vt_vect_iter_end;
 	    vt_vect_iter_end = tmp.end();
 	    for (vt_vect_iter = tmp.begin(); vt_vect_iter!= vt_vect_iter_end; ++vt_vect_iter)
 	    {
-	      PRINT_DEBUG("check for equality, supernode is: "+fg2[supernode].name+" while the iterator value is: "+*vt_vect_iter);
+	      PRINT_DEBUG("collapse process: check for equality, supernode is: "+fg2[supernode].name+" while the iterator value is: "+*vt_vect_iter);
 	      if (std::find(collapse_maps.at(fg2[supernode].name).begin(),collapse_maps.at(fg2[supernode].name).end(),*vt_vect_iter)==collapse_maps.at(fg2[supernode].name).end())
 	      {
-		PRINT_DEBUG("check passed, adding the node");
+		PRINT_DEBUG("collapse process: check passed, adding the node");
 		collapse_maps.at(fg2[supernode].name).push_back(*vt_vect_iter);
 	      }
 	    }
@@ -204,7 +384,7 @@ internal_graph::internal_graph(const Graph& g){
 	  }
 	  
 	}
-	PRINT_DEBUG("-- ++ --");
+	PRINT_DEBUG("collapse process: -- ++ --");
 	PRINT_DEBUG(boost::lexical_cast<std::string>(collapse_maps.size()));  
 	
       }
@@ -224,6 +404,7 @@ internal_graph::internal_graph(const Graph& g){
     }
     
     //build layer 4 to 5 connections with the collapse maps
+
     std::map <std::string, std::vector<std::string> >::iterator connection_building_iter,connection_building_iter_end;
     connection_building_iter_end=collapse_maps.end();
     for (connection_building_iter = collapse_maps.begin(); connection_building_iter != connection_building_iter_end; ++connection_building_iter)
@@ -240,9 +421,9 @@ internal_graph::internal_graph(const Graph& g){
 	      PRINT_DEBUG("  vt2 ++++   ------"+ig[vt2].name);
 	      inner_edge_t e; bool b;
               boost::tie(e,b) = boost::add_edge(vt,vt2,ig);
-	      ig[e].priority = SAFETY_CRITICAL;  //not sure though. 
+	      //ig[e].priority = SAFETY_CRITICAL;  //not sure though. 
 	      boost::tie(e,b) = boost::add_edge(vt2,vt,ig);
-	      ig[e].priority = SAFETY_CRITICAL;
+	      //ig[e].priority = SAFETY_CRITICAL;
 	    }
 	  }
 	  else
@@ -251,7 +432,7 @@ internal_graph::internal_graph(const Graph& g){
 	    throw std::runtime_error(boost::lexical_cast<std::string>("ERROR: node not found when building "));
 	  }
     }
-    
+        /*  ----------- old --------------
 //questa parte penso che sia da eliminare
     //for every processing unit (type = PROCESSOR)
     //create a new graph that is a copy of fg2.
@@ -291,7 +472,7 @@ internal_graph::internal_graph(const Graph& g){
 	  ++tmp_iter_next;
 	  PRINT_DEBUG("RESULT MAP BUILDING: iterate on vertexes, the vertex is:"+boost::lexical_cast<std::string>(*tmp_iter));
 	  if(tmp_graph_copy_for_research[*tmp_iter].type == PROCESSOR) continue;
-	  std::map<vertex_t,Priority> results_map;
+	  std::map<vertex_t,int> results_map;
 	  Graph inner_copy; 
 	  boost::copy_graph(tmp_graph_copy_for_research,inner_copy);
 	  
@@ -304,12 +485,12 @@ internal_graph::internal_graph(const Graph& g){
 	    if(inner_copy[boost::source(*tmp_edge_iter,inner_copy)].name == tmp_graph_copy_for_research[*tmp_iter].name)//removed vtx tmp iter pero è di esterno. 
 	    {
 	      PRINT_DEBUG("RESULT MAP BUILDING: searching adjacent nodes, is source. dest is: "+ inner_copy[boost::target(*tmp_edge_iter,inner_copy)].name+" and the port is: "+boost::lexical_cast<std::string>(inner_copy[*tmp_edge_iter].from_port.component_port)); //identify adjacent nodes.
-	      results_map.insert(std::make_pair<vertex_t,Priority>(boost::target(*tmp_edge_iter,inner_copy),inner_copy[boost::source(*tmp_edge_iter,inner_copy)].ports.at(inner_copy[*tmp_edge_iter].from_port.component_port)));
+	      results_map.insert(std::make_pair(boost::target(*tmp_edge_iter,inner_copy),inner_copy[boost::source(*tmp_edge_iter,inner_copy)].ports.at(inner_copy[*tmp_edge_iter].from_port.component_port)));
 	    }
 	    else if(inner_copy[boost::target(*tmp_edge_iter,inner_copy)].name == tmp_graph_copy_for_research[*tmp_iter].name)
 	    {
 	      PRINT_DEBUG("RESULT MAP BUILDING: searching adjacent nodes, is target. source is: "+inner_copy[boost::source(*tmp_edge_iter,inner_copy)].name+" and the port is: "+boost::lexical_cast<std::string>(inner_copy[*tmp_edge_iter].to_port.component_port)); //identify adjacent nodes.
-	      results_map.insert(std::make_pair<vertex_t,Priority>(boost::source(*tmp_edge_iter,inner_copy),inner_copy[boost::target(*tmp_edge_iter,inner_copy)].ports.at(inner_copy[*tmp_edge_iter].to_port.component_port)));
+	      results_map.insert(std::make_pair(boost::source(*tmp_edge_iter,inner_copy),inner_copy[boost::target(*tmp_edge_iter,inner_copy)].ports.at(inner_copy[*tmp_edge_iter].to_port.component_port)));
 	    }
 	  }
 	  PRINT_DEBUG("RESULT MAP BUILDING: print size of results_map, that is: "+boost::lexical_cast<std::string>(results_map.size()));
@@ -321,7 +502,7 @@ internal_graph::internal_graph(const Graph& g){
 	  // prova solo clear, non dovrebbe modificare la mappa dei vertici ma solo togliere i collegamenti. dovrebbe andar bene uguale
 #ifdef DEBUG
 	  PRINT_DEBUG("neighbor map: for vertex: "+inner_copy[*tmp_iter].name);
-	  std::map<vertex_t,Priority>::iterator debug_vertex_priority, debug_vertex_priority_end;
+	  std::map<vertex_t,int>::iterator debug_vertex_priority, debug_vertex_priority_end;
 	  debug_vertex_priority_end = results_map.end();
 	  for(debug_vertex_priority=results_map.begin();debug_vertex_priority!=debug_vertex_priority_end; ++debug_vertex_priority)
 	  {
@@ -329,6 +510,7 @@ internal_graph::internal_graph(const Graph& g){
 	  }
 	  
 #endif
+
 	  vertex_t source;
 	  vertex_iter source_iter, source_iter_end;
 
@@ -343,6 +525,7 @@ internal_graph::internal_graph(const Graph& g){
 	      break;//identify the node of thee processing unit
 	    }
 	  }
+	  
 	  //build fg (no much sense i think i can just modify the visitor in order to work with inner copy)
 	  boost::filtered_graph<Graph,extern_edge_predicate_c ,extern_vertex_predicate_c> tmp_fg(inner_copy,extern_edge_predicate_c(inner_copy),extern_vertex_predicate_c(inner_copy));
 	  std::vector<vertex_t> discovered;
@@ -358,7 +541,7 @@ internal_graph::internal_graph(const Graph& g){
 	    PRINT_DEBUG("found an int in search, the result is: " + boost::lexical_cast<std::string>(x)); //should return 0 when finalizes the source vertex
 	  }
 	  PRINT_DEBUG("size of discovered is: "+boost::lexical_cast<std::string>(discovered.size()));
-	  Priority p = NO_PRIORITY;
+	  int p = NO_PRIORITY;
 	  std::vector<vertex_t>::iterator discovered_it_end= discovered.end();
 	  for(std::vector<vertex_t>::iterator discovered_it= discovered.begin();discovered_it!=discovered_it_end; ++discovered_it)
 	    {
@@ -370,10 +553,10 @@ internal_graph::internal_graph(const Graph& g){
 	  //add edges. works.
 	  inner_edge_t e; bool b;
 	  boost::tie(e,b) = boost::add_edge(get_node_reference(lvl_4_to_3_map.at(inner_copy[source].name)),get_node_reference(tmp_graph_copy_for_research[*tmp_iter].name),ig);
-          ig[e].priority= p;
+          //ig[e].priority= p;
 	  if(!(ig[get_node_reference(tmp_graph_copy_for_research[*tmp_iter].name)].priority_category == TDMA || ig[get_node_reference(tmp_graph_copy_for_research[*tmp_iter].name)].type == BRIDGE))
 	    boost::tie(e,b) = boost::add_edge(get_node_reference(tmp_graph_copy_for_research[*tmp_iter].name),get_node_reference(lvl_4_to_3_map.at(inner_copy[source].name)),ig);
-          ig[e].priority= p;
+          //ig[e].priority= p;
 	  
 	  //TODO add controls on component type in order to avoid back edges if tdma.
 	  }
@@ -388,7 +571,7 @@ internal_graph::internal_graph(const Graph& g){
 	}
       }
     }
-    
+    */
 #ifdef DEBUG
   std::ofstream myfile;
   myfile.open ("/home/emanuele/Documents/tmp_graph/aaa.dot");
@@ -431,7 +614,7 @@ bool internal_graph::search_path(std::__cxx11::string from, std::__cxx11::string
   boost::filtered_graph<Internal_Graph,inner_edge_predicate_c,inner_vertex_predicate_c> ifg (ig,inner_edge_predicate_c(ig,CONTROLLER,get_node_reference(to)),inner_vertex_predicate_c(ig,l));
       inner_visitor vis = inner_visitor(get_node_reference(to));
           
-#ifdef DEBUG
+#if 0
   std::ofstream myfile;
   myfile.open ("/home/emanuele/Documents/tmp_graph/aaafiltrato.dot");
   boost::write_graphviz(myfile, ifg,make_vertex_writer(boost::get(&Custom_Vertex::layer, ifg),boost::get (&Custom_Vertex::name, ifg),boost::get(&Custom_Vertex::ports, ifg), boost::get(&Custom_Vertex::type,ifg ), boost::get(&Custom_Vertex::priority_category,ifg))
