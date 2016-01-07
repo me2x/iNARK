@@ -611,7 +611,7 @@ bool internal_graph::search_path(std::__cxx11::string from, std::__cxx11::string
     }
   }
   PRINT_DEBUG ("starting search. target OS is: "+ig[target_os].name);
-  boost::filtered_graph<Internal_Graph,inner_edge_predicate_c,inner_vertex_predicate_c> ifg (ig,inner_edge_predicate_c(ig,CONTROLLER,get_node_reference(to)),inner_vertex_predicate_c(ig,l));
+  boost::filtered_graph<Internal_Graph,inner_edge_predicate_c,inner_vertex_predicate_c> ifg (ig,inner_edge_predicate_c(ig,l,get_node_reference(to))/*doesnt really matter. can be deleted*/,inner_vertex_predicate_c(ig,l));
       inner_visitor vis = inner_visitor(get_node_reference(to));
           
 #if 0
