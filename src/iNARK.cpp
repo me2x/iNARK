@@ -5,7 +5,7 @@
 #include "iNARKConfig.h"
 
 #include "graph/graph.h"
-#include "graph/internal_graph.h"
+#include "graph/timing_internal_graph.h"
 int main (int argc, char *argv[])
 {
   //TODO destructors
@@ -17,8 +17,8 @@ int main (int argc, char *argv[])
     custom_graph g = custom_graph();
     g.create_graph("aaa");
 
-    internal_graph ig = internal_graph(g.get_graph());
-    if (ig.search_path("task_2", "task_1",SAFETY_CRITICAL,RESOURCE))
+    timing_internal_graph ig = timing_internal_graph(g.get_graph());
+    if (ig.search_path("task_1", "task_2",SAFETY_CRITICAL,RESOURCE))
         return 0;
     else return 100;
 

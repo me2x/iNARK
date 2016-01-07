@@ -14,24 +14,65 @@ bool inner_vertex_predicate_c::operator()(const vertex_t& vertex_id) const{
 inner_visitor::inner_visitor(vertex_t destination_vertex_l): destination_vertex_m(destination_vertex_l) {
     PRINT_DEBUG("prova");
     PRINT_DEBUG (destination_vertex_m);
-}
-void inner_visitor::initialize_vertex(const vertex_t s, const boost::filtered_graph<Internal_Graph, inner_edge_predicate_c,inner_vertex_predicate_c>  g) const {}
-void inner_visitor::discover_vertex(const vertex_t s, const boost::filtered_graph<Internal_Graph, inner_edge_predicate_c,inner_vertex_predicate_c>  g)const {
+    start_flag = true;
+}/*
+void inner_visitor::initialize_vertex(const vertex_t s, const boost::filtered_graph<Timing_Graph, inner_edge_predicate_c,inner_vertex_predicate_c>  g) const {}
+void inner_visitor::discover_vertex(const vertex_t s, const boost::filtered_graph<Timing_Graph, inner_edge_predicate_c,inner_vertex_predicate_c>  g)const {
     PRINT_DEBUG("exploring, found vertex: "<<g[s].name);
 
     if (destination_vertex_m == s)
       throw(2);
 }
 
-void inner_visitor::examine_vertex(const vertex_t s, const boost::filtered_graph<Internal_Graph, inner_edge_predicate_c,inner_vertex_predicate_c>  g) const {}
-void inner_visitor::examine_edge(const inner_edge_t e, const boost::filtered_graph<Internal_Graph, inner_edge_predicate_c,inner_vertex_predicate_c>  g) const {}
-void inner_visitor::edge_relaxed(const inner_edge_t e, const boost::filtered_graph<Internal_Graph, inner_edge_predicate_c,inner_vertex_predicate_c>  g) const {}
-void inner_visitor::edge_not_relaxed(const inner_edge_t e, const boost::filtered_graph<Internal_Graph, inner_edge_predicate_c,inner_vertex_predicate_c>  g) const {}
-void inner_visitor::finish_vertex(const vertex_t s, const boost::filtered_graph<Internal_Graph, inner_edge_predicate_c,inner_vertex_predicate_c>  g) const {}
+void inner_visitor::examine_vertex(const vertex_t s, const boost::filtered_graph<Timing_Graph, inner_edge_predicate_c,inner_vertex_predicate_c>  g) const {}
+void inner_visitor::examine_edge(const inner_edge_t e, const boost::filtered_graph<Timing_Graph, inner_edge_predicate_c,inner_vertex_predicate_c>  g) const {}
+void inner_visitor::edge_relaxed(const inner_edge_t e, const boost::filtered_graph<Timing_Graph, inner_edge_predicate_c,inner_vertex_predicate_c>  g) const {}
+void inner_visitor::edge_not_relaxed(const inner_edge_t e, const boost::filtered_graph<Timing_Graph, inner_edge_predicate_c,inner_vertex_predicate_c>  g) const {}
+void inner_visitor::finish_vertex(const vertex_t s, const boost::filtered_graph<Timing_Graph, inner_edge_predicate_c,inner_vertex_predicate_c>  g) const {}
 
+*/
 
+void inner_visitor::initialize_vertex(const vertex_t s, const boost::filtered_graph<Timing_Graph, inner_edge_predicate_c,inner_vertex_predicate_c>  g) const {
+      PRINT_DEBUG("exploring, initialize vertex: "<<g[s].name);
 
+}
+void inner_visitor::start_vertex(const vertex_t s, const boost::filtered_graph<Timing_Graph, inner_edge_predicate_c,inner_vertex_predicate_c>  g) const {
+      PRINT_DEBUG("exploring, start vertex: "<<g[s].name);
+      if (start_flag == false) 
+      {
+	PRINT_DEBUG("exploring, start flag is false");
+	throw (2);
+      }
+      else
+      {
+	PRINT_DEBUG("exploring, start flag is true");
+      }
+      start_flag = false;
+      
+}
+void inner_visitor::discover_vertex(const vertex_t s, const boost::filtered_graph<Timing_Graph, inner_edge_predicate_c,inner_vertex_predicate_c>  g) const 
+{
+      PRINT_DEBUG("exploring, found vertex: "<<g[s].name);
 
+    if (destination_vertex_m == s)
+      throw(3);
+}
+void inner_visitor::examine_edge(const inner_edge_t e, const boost::filtered_graph<Timing_Graph, inner_edge_predicate_c,inner_vertex_predicate_c>  g) const {
+      PRINT_DEBUG("exploring, examining edge: "<<g[boost::source<>(e,g)].name << "-" <<g[boost::target<>(e,g)].name);
+
+}
+void inner_visitor::tree_edge(const inner_edge_t e, const boost::filtered_graph<Timing_Graph, inner_edge_predicate_c,inner_vertex_predicate_c>  g) const {
+  PRINT_DEBUG("exploring, tree edge: "<<g[boost::source<>(e,g)].name << "-" <<g[boost::target<>(e,g)].name);
+}
+void inner_visitor::back_edge(const inner_edge_t e, const boost::filtered_graph<Timing_Graph, inner_edge_predicate_c,inner_vertex_predicate_c>  g) const {
+  PRINT_DEBUG("exploring, back edge: "<<g[boost::source<>(e,g)].name << "-" <<g[boost::target<>(e,g)].name);
+}
+void inner_visitor::forward_or_cross_edge(const inner_edge_t e, const boost::filtered_graph<Timing_Graph, inner_edge_predicate_c,inner_vertex_predicate_c>  g) const {
+  PRINT_DEBUG("exploring, forward_or_cross edge: "<<g[boost::source<>(e,g)].name << "-" <<g[boost::target<>(e,g)].name);
+}
+void inner_visitor::finish_vertex(const vertex_t s, const boost::filtered_graph<Timing_Graph, inner_edge_predicate_c,inner_vertex_predicate_c>  g) const {
+  PRINT_DEBUG("exploring, finalize vertex: "<<g[s].name);
+}
 
 
 
@@ -54,17 +95,17 @@ extern_visitor::extern_visitor(std::vector<vertex_t>& discovered,vertex_t& sourc
     PRINT_DEBUG ("using extern visitor" );
 
 }
-void extern_visitor::initialize_vertex(const vertex_t s, const boost::filtered_graph<Internal_Graph, extern_edge_predicate_c,extern_vertex_predicate_c>  g) const {
+void extern_visitor::initialize_vertex(const vertex_t s, const boost::filtered_graph<Timing_Graph, extern_edge_predicate_c,extern_vertex_predicate_c>  g) const {
   PRINT_DEBUG("init vertex: "+boost::lexical_cast<std::string>(s));
 }
-void extern_visitor::discover_vertex(const vertex_t s, const boost::filtered_graph<Internal_Graph, extern_edge_predicate_c,extern_vertex_predicate_c>  g)const {
+void extern_visitor::discover_vertex(const vertex_t s, const boost::filtered_graph<Timing_Graph, extern_edge_predicate_c,extern_vertex_predicate_c>  g)const {
   discovered_vertexes->push_back(s);
   PRINT_DEBUG("found vertex: "+boost::lexical_cast<std::string>(s));
 }
-void extern_visitor::examine_vertex(const vertex_t s, const boost::filtered_graph<Internal_Graph, extern_edge_predicate_c,extern_vertex_predicate_c>  g) const {
+void extern_visitor::examine_vertex(const vertex_t s, const boost::filtered_graph<Timing_Graph, extern_edge_predicate_c,extern_vertex_predicate_c>  g) const {
   PRINT_DEBUG("examine vertex: "+boost::lexical_cast<std::string>(s));
 }
-void extern_visitor::examine_edge(const inner_edge_t e, const boost::filtered_graph<Internal_Graph, extern_edge_predicate_c,extern_vertex_predicate_c>  g) const { 
+void extern_visitor::examine_edge(const inner_edge_t e, const boost::filtered_graph<Timing_Graph, extern_edge_predicate_c,extern_vertex_predicate_c>  g) const { 
   { //non va bene xk essendo il grafo non diretto perdo collegamento tra porta e componente: l'edge infatti viene girato a piacimento mentre il to e il from restano gli stessi.
   PRINT_DEBUG("examining edge: start. edge is: "+boost::lexical_cast<std::string>(e)+"target node is: "+g[(boost::target(e,g))].name+
   " and the target name is: "+boost::lexical_cast<std::string>(g[e].to_port.component_name)+
@@ -93,13 +134,13 @@ void extern_visitor::examine_edge(const inner_edge_t e, const boost::filtered_gr
  */ 
 }
 }
-void extern_visitor::edge_relaxed(const inner_edge_t e, const boost::filtered_graph<Internal_Graph, extern_edge_predicate_c,extern_vertex_predicate_c>  g) const {
+void extern_visitor::edge_relaxed(const inner_edge_t e, const boost::filtered_graph<Timing_Graph, extern_edge_predicate_c,extern_vertex_predicate_c>  g) const {
   PRINT_DEBUG("edge edge_relaxed");
 }
-void extern_visitor::edge_not_relaxed(const inner_edge_t e, const boost::filtered_graph<Internal_Graph, extern_edge_predicate_c,extern_vertex_predicate_c>  g) const {
+void extern_visitor::edge_not_relaxed(const inner_edge_t e, const boost::filtered_graph<Timing_Graph, extern_edge_predicate_c,extern_vertex_predicate_c>  g) const {
   PRINT_DEBUG("edge not edge_not_relaxed");
 }
-void extern_visitor::finish_vertex(const vertex_t s, const boost::filtered_graph<Internal_Graph, extern_edge_predicate_c,extern_vertex_predicate_c>  g) const {
+void extern_visitor::finish_vertex(const vertex_t s, const boost::filtered_graph<Timing_Graph, extern_edge_predicate_c,extern_vertex_predicate_c>  g) const {
   PRINT_DEBUG("finalize vvertex "+boost::lexical_cast<std::string>(s));
   if (s == *source) throw 0;
 }

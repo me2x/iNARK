@@ -10,8 +10,8 @@ link_directories(${Boost_LIBRARY_DIR})
 SET(GRAPH_SRCS
 graph.h
 graph.cpp
-internal_graph.h
-internal_graph.cpp
+timing_internal_graph.h
+timing_internal_graph.cpp
 graph_common.h
 custom_visitors.h
 custom_visitors.cpp

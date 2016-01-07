@@ -69,16 +69,16 @@ public:
 };
 
 
-typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS,Custom_Vertex,Custom_Edge> Graph;
-typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS,Custom_Vertex,Custom_Edge> Internal_Graph;
-typedef boost::graph_traits<Graph>::vertex_descriptor vertex_t;
-typedef boost::graph_traits<Graph>::edge_descriptor edge_t;
-typedef boost::graph_traits<Internal_Graph>::edge_descriptor inner_edge_t;
-typedef boost::graph_traits<Graph>::vertex_iterator vertex_iter;
-typedef boost::graph_traits<Internal_Graph>::vertex_iterator inner_vertex_iter;
-typedef boost::graph_traits<Graph>::edge_iterator edge_iter;
-typedef boost::graph_traits<Internal_Graph>::edge_iterator inner_edge_iter;
-typedef boost::graph_traits<Graph>::out_edge_iterator ext_out_edge_iter;
+typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS,Custom_Vertex,Custom_Edge>Source_Graph;
+typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS,Custom_Vertex,Custom_Edge> Timing_Graph;
+typedef boost::graph_traits<Source_Graph>::vertex_descriptor vertex_t;
+typedef boost::graph_traits<Source_Graph>::edge_descriptor edge_t;
+typedef boost::graph_traits<Timing_Graph>::edge_descriptor inner_edge_t;
+typedef boost::graph_traits<Source_Graph>::vertex_iterator vertex_iter;
+typedef boost::graph_traits<Timing_Graph>::vertex_iterator inner_vertex_iter;
+typedef boost::graph_traits<Source_Graph>::edge_iterator edge_iter;
+typedef boost::graph_traits<Timing_Graph>::edge_iterator inner_edge_iter;
+typedef boost::graph_traits<Source_Graph>::out_edge_iterator ext_out_edge_iter;
 
 template <class Layer_Map,class Name_Map,class Ports_Map, class Type_Map, class Priority_Type_Map>
 class vertex_writer {

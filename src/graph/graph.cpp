@@ -117,8 +117,8 @@ bool custom_graph::create_graph(std::string xml)
        using boost::property_tree::ptree;
        ptree pt;
        read_xml("/home/emanuele/iNARK/spec.xml",pt);
-       // create a typedef for the Graph type
-       // Graph g;
+       // create a typedef for the Source_Graph type
+       // Source_Graph g;
            BOOST_FOREACH(ptree::value_type &v,pt.get_child("root.components"))
           {
               vertex_t vt = boost::add_vertex(local_graph);
@@ -200,6 +200,6 @@ return false;
 
 
 
-const Graph custom_graph::get_graph(){
+const Source_Graph custom_graph::get_graph(){
     return local_graph;
 }
