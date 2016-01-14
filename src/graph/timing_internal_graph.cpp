@@ -595,7 +595,7 @@ vertex_t timing_internal_graph::get_node_reference(std::string str)
   }
   return NULL;
 }
-bool timing_internal_graph::search_path(std::__cxx11::string from, std::__cxx11::string to, Priority p,Layer l)
+bool timing_internal_graph::search_path(std::string from, std::string to, Priority p,Layer l)
 {
   vertex_t target_os;
   boost::graph_traits<Timing_Graph>::out_edge_iterator edges_out, edges_out_end;
