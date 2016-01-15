@@ -18,7 +18,7 @@ timing_internal_graph::timing_internal_graph(const Source_Graph& g){
 	  {
 	    vertex_t vt =  boost::add_vertex(ig);
 	    ig[vt].layer=g[*vp.first].layer;
-	    ig[vt].name=g[*vp.first].name+"_"+boost::lexical_cast<std::string>(i);
+	    ig[vt].name=g[*vp.first].name+"$$"+boost::lexical_cast<std::string>(i);
 	    ig[vt].type=g[*vp.first].type;
 	    tmp.insert(std::make_pair(i,vt));
 	//    ig[vt].priority_category=g[*vp.first].priority_category;
@@ -26,7 +26,7 @@ timing_internal_graph::timing_internal_graph(const Source_Graph& g){
 	    if (i!= 0)
 	    {
 	      inner_edge_t e; bool b;
-	      boost::tie(e,b) = boost::add_edge(vt,get_node_reference(g[*vp.first].name+"_"+boost::lexical_cast<std::string>(i-1)),ig);
+	      boost::tie(e,b) = boost::add_edge(vt,get_node_reference(g[*vp.first].name+"$$"+boost::lexical_cast<std::string>(i-1)),ig);
 	    }
 	  }
 	  lvl_3_tracer.insert(std::make_pair(*vp.first,tmp));
@@ -52,7 +52,7 @@ timing_internal_graph::timing_internal_graph(const Source_Graph& g){
 	  {
 	    vertex_t vt =  boost::add_vertex(ig);
 	    ig[vt].layer=g[*vp.first].layer;
-	    ig[vt].name=g[*vp.first].name+"_"+boost::lexical_cast<std::string>(x.first);
+	    ig[vt].name=g[*vp.first].name+"$$"+boost::lexical_cast<std::string>(x.first);
 	    ig[vt].type=g[*vp.first].type;
 	    tmp.insert(std::make_pair(x.first,vt));
 	    //ig[vt].priority_category=g[*vp.first].priority_category;
@@ -61,7 +61,7 @@ timing_internal_graph::timing_internal_graph(const Source_Graph& g){
 	      if (y.first < x.first)
 	      {
 		 inner_edge_t e; bool b;
-		 boost::tie(e,b) = boost::add_edge(get_node_reference(g[*vp.first].name+"_"+boost::lexical_cast<std::string>(x.first)),get_node_reference(g[*vp.first].name+"_"+boost::lexical_cast<std::string>(y.first)),ig);
+		 boost::tie(e,b) = boost::add_edge(get_node_reference(g[*vp.first].name+"$$"+boost::lexical_cast<std::string>(x.first)),get_node_reference(g[*vp.first].name+"$$"+boost::lexical_cast<std::string>(y.first)),ig);
 	      }
 	  }
 	  lvl_4_tracer.insert(std::make_pair(*vp.first,tmp));
@@ -118,8 +118,8 @@ timing_internal_graph::timing_internal_graph(const Source_Graph& g){
 	    if(g[third_layer_vertex].priority_category == PRIORITY)
 	    {
 	      
-	     boost::tie(e,b) = boost::add_edge(get_node_reference(g[third_layer_vertex].name+"_"+boost::lexical_cast<std::string>(g[*ei].priority)),get_node_reference(g[other_vertex].name),ig);
-	     boost::tie(e,b) = boost::add_edge(get_node_reference(g[other_vertex].name),get_node_reference(g[third_layer_vertex].name+"_"+boost::lexical_cast<std::string>(g[*ei].priority)),ig);
+	     boost::tie(e,b) = boost::add_edge(get_node_reference(g[third_layer_vertex].name+"$$"+boost::lexical_cast<std::string>(g[*ei].priority)),get_node_reference(g[other_vertex].name),ig);
+	     boost::tie(e,b) = boost::add_edge(get_node_reference(g[other_vertex].name),get_node_reference(g[third_layer_vertex].name+"$$"+boost::lexical_cast<std::string>(g[*ei].priority)),ig);
 	    }
 	    else
 	    {
@@ -138,8 +138,8 @@ timing_internal_graph::timing_internal_graph(const Source_Graph& g){
 	      	    //the third is: TODO add third layer links with all priorities
 	      for(int i = 0; i < PRIORITY_ENUM_SIZE; i++)
 	      {
-		boost::tie(e,b) = boost::add_edge(get_node_reference(g[third_layer_vertex].name+"_"+boost::lexical_cast<std::string>(i)),get_node_reference(g[other_vertex].name),ig);
-		boost::tie(e,b) = boost::add_edge(get_node_reference(g[other_vertex].name),get_node_reference(g[third_layer_vertex].name+"_"+boost::lexical_cast<std::string>(i)),ig);
+		boost::tie(e,b) = boost::add_edge(get_node_reference(g[third_layer_vertex].name+"$$"+boost::lexical_cast<std::string>(i)),get_node_reference(g[other_vertex].name),ig);
+		boost::tie(e,b) = boost::add_edge(get_node_reference(g[other_vertex].name),get_node_reference(g[third_layer_vertex].name+"$$"+boost::lexical_cast<std::string>(i)),ig);
 	      }
 	    }
 	    else
@@ -595,24 +595,33 @@ vertex_t timing_internal_graph::get_node_reference(std::string str)
   }
   return NULL;
 }
-bool timing_internal_graph::search_path(std::string from, std::string to, Priority p,Layer l)
+bool timing_internal_graph::search_path(std::string from, std::string to, Layer l)
 {
-  vertex_t target_os;
-  boost::graph_traits<Timing_Graph>::out_edge_iterator edges_out, edges_out_end;
-  boost::tie (edges_out,edges_out_end) = boost::out_edges(get_node_reference(to),ig);
-  for(;edges_out != edges_out_end; ++edges_out)
+  vertex_t source_os;
+  if (l != CONTROLLER)
   {
-    PRINT_DEBUG("considered edge is: ("+ig[boost::source(*edges_out,ig)].name+" , "+ig[boost::target(*edges_out,ig)].name+")");
-    if (ig[boost::target(*edges_out,ig)].layer == CONTROLLER)
+    boost::graph_traits<Timing_Graph>::out_edge_iterator edges_out, edges_out_end;
+    boost::tie (edges_out,edges_out_end) = boost::out_edges(get_node_reference(from),ig);
+    for(;edges_out != edges_out_end; ++edges_out)
     {
-      PRINT_DEBUG("if condition is true" );
-      target_os = boost::target(*edges_out,ig);
-      break;
+      PRINT_DEBUG("considered edge is: ("+ig[boost::source(*edges_out,ig)].name+" , "+ig[boost::target(*edges_out,ig)].name+")");
+      if (ig[boost::target(*edges_out,ig)].layer == CONTROLLER)
+      {
+	PRINT_DEBUG("if condition is true" );
+	source_os = boost::target(*edges_out,ig);
+	break;
+      }
     }
+    PRINT_DEBUG ("starting search. source OS is: "+ig[source_os].name);
   }
-  PRINT_DEBUG ("starting search. target OS is: "+ig[target_os].name);
-  boost::filtered_graph<Timing_Graph,inner_edge_predicate_c,inner_vertex_predicate_c> ifg (ig,inner_edge_predicate_c(ig,l,get_node_reference(to))/*doesnt really matter. can be deleted*/,inner_vertex_predicate_c(ig,l));
-      inner_visitor vis = inner_visitor(get_node_reference(to));
+  else
+  {
+    source_os=0;
+    PRINT_DEBUG ("starting search. else branch source OS is: "+ig[source_os].name);
+  }
+  std::vector<vertex_t> path;
+  boost::filtered_graph<Timing_Graph,inner_edge_predicate_c,inner_vertex_predicate_c> ifg (ig,inner_edge_predicate_c(ig,l,get_node_reference(to))/*doesnt really matter. can be deleted*/,inner_vertex_predicate_c(ig,l,ig[source_os].name));
+      source_to_target_visitor vis = source_to_target_visitor(path,get_node_reference(to));
           
 #if 1
   std::ofstream myfile;
@@ -631,7 +640,11 @@ bool timing_internal_graph::search_path(std::string from, std::string to, Priori
     catch (int exception) {
       if (exception == 3) 
       {
-	PRINT_DEBUG ("SEARCH: path found");
+	PRINT_DEBUG ("SEARCH: path found, and is:");
+	for (vertex_t v : path)
+	{
+	  PRINT_DEBUG(ig[v].name); //TODO ricompattare gli "esplosi" se ne vale la pena. senti il capo.
+	}
 	return true;
       }
       else if (exception == 2) 
@@ -643,4 +656,78 @@ bool timing_internal_graph::search_path(std::string from, std::string to, Priori
     
 return false;
 }
+#if 0
+//posso usarla per entrambe le ricerche. reverse "decide" se grafo dritto (ovvero this node interferes with) oppure al contrario (this node is interfered by)
+void timing_internal_graph::search_interfered_nodes (std::string source, bool reverse)
+{
+  PRINT_DEBUG("interfered node search: start");
+  vertex_t source_os;
+  boost::graph_traits<Timing_Graph>::out_edge_iterator edges_out, edges_out_end;
+  boost::tie (edges_out,edges_out_end) = boost::out_edges(get_node_reference(source),ig);
+  for(;edges_out != edges_out_end; ++edges_out)
+  {
+    PRINT_DEBUG("interfered node search considered edge is: ("+ig[boost::source(*edges_out,ig)].name+" , "+ig[boost::target(*edges_out,ig)].name+")");
+    if (ig[boost::target(*edges_out,ig)].layer == CONTROLLER)
+    {
+    PRINT_DEBUG("interfered node search if condition is true" );
+    source_os = boost::target(*edges_out,ig);
+    break;
+    }
+  }
+  PRINT_DEBUG ("interfered node search starting search. source OS is: "+ig[source_os].name);
+  std::vector<vertex_t> controller_reached_tasks;
+  std::vector<vertex_t> components_reached_tasks;
+  std::vector<vertex_t> physical_reached_tasks;
+  //Timing_Graph target_graph = reverse ?boost::make_reverse_graph(ig) :ig;
+  boost::filtered_graph<Timing_Graph,inner_edge_predicate_c,inner_vertex_predicate_c> ifg (target_graph,inner_edge_predicate_c(target_graph,LAYER_ERROR,get_node_reference(0))/*doesnt really matter. can be deleted*/,inner_vertex_predicate_c(target_graph,l,ig[source_os].name));
+  interference_visitor vis_con = interference_visitor(controller_reached_tasks);
+  interference_visitor vis_com = interference_visitor(components_reached_tasks);
+  interference_visitor vis_phy = interference_visitor(physical_reached_tasks);
+  try {
+      boost::depth_first_search(
+        ifg, boost::root_vertex(get_node_reference(source)).visitor(vis_con)
+      );
+    }
+    catch (int exception) {
+      if (exception == 2) 
+      {
+	PRINT_DEBUG ("SEARCH: restarting, path not foundd");
+	for (vertex_t v : controller_reached_tasks)
+	{
+	  PRINT_DEBUG(target_graph[v].name); //TODO ricompattare gli "esplosi" se ne vale la pena. senti il capo.
+	}
+      }
+    }
+    try {
+      boost::depth_first_search(
+        ifg, boost::root_vertex(get_node_reference(source)).visitor(vis_com)
+      );
+    }
+    catch (int exception) {
+      if (exception == 2) 
+      {
+	PRINT_DEBUG ("SEARCH: restarting, path not foundd");
+	for (vertex_t v : components_reached_tasks)
+	{
+	  PRINT_DEBUG(target_graph[v].name); //TODO ricompattare gli "esplosi" se ne vale la pena. senti il capo.
+	}
+      }
+    }
+    try {
+      boost::depth_first_search(
+        ifg, boost::root_vertex(get_node_reference(source)).visitor(vis_phy)
+      );
+    }
+    catch (int exception) {
+      if (exception == 2) 
+      {
+	PRINT_DEBUG ("SEARCH: restarting, path not foundd");
+	for (vertex_t v : physical_reached_tasks)
+	{
+	  PRINT_DEBUG(target_graph[v].name); //TODO ricompattare gli "esplosi" se ne vale la pena. senti il capo.
+	}
+      }
+    }
 
+}
+#endif

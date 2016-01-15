@@ -127,7 +127,7 @@ int main (int argc, char *argv[])
       }
       case 1:
       {
-	if (ig.search_path(from_component, to_component,SAFETY_CRITICAL,l))
+	if (ig.search_path(from_component, to_component,l))
 
         return 0;
     else return 100;
@@ -135,6 +135,7 @@ int main (int argc, char *argv[])
       }
       case 2:
       {
+	//ig.search_interfered_nodes(from_component, false);
 #ifdef DEBUG	
 	std::cout<<"not implemented yet"<<std::endl;
 #endif	
@@ -142,6 +143,7 @@ int main (int argc, char *argv[])
       }
       case 3:
       {
+	//ig.search_interfered_nodes(to_component, true);
 #ifdef DEBUG	
 	std::cout<<"not implemented yet"<<std::endl;
 #endif	

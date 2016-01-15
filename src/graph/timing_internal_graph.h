@@ -8,7 +8,8 @@ class timing_internal_graph
        {
 public:
     timing_internal_graph (const Source_Graph& g);
-    bool search_path (std::string from, std::string to, Priority p,Layer l);
+    bool search_path (std::string from, std::string to, Layer l);
+    //void search_interfered_nodes (std::string source, bool reverse);
 private:
     Timing_Graph ig;
     vertex_t get_node_reference (std::string);
