@@ -84,6 +84,7 @@ timing_internal_graph::timing_internal_graph(const Source_Graph& g){
     //per ogni edge, crea andata e ritorno nel bidirezionale. tranne che per gli intra layer e i link tra 4 e 5th livello. 3 to 4th lvl vanno creati dopo aver collassato
     //il 4th lvl guardando le priorita delle porte. 4 to 5 vanno mappati subito dopo il collasso a causa di possibile presenza di componenti mappati su stesso nodo collassato presenti su piu board
     edge_iter ei, ei_end;
+#if 0
     for (boost::tie(ei, ei_end) = boost::edges(g); ei != ei_end; ++ei)
     {
         inner_edge_t e; bool b;
@@ -226,8 +227,9 @@ timing_internal_graph::timing_internal_graph(const Source_Graph& g){
 	
 	
 	
-	
+
 	}
+
      /*   if((g[boost::source(*ei,g)].layer== TASK && g[boost::target(*ei,g)].layer == CONTROLLER) || (g[boost::source(*ei,g)].layer!= CONTROLLER && g[boost::target(*ei,g)].layer != TASK))
         {
 	  
@@ -246,7 +248,7 @@ timing_internal_graph::timing_internal_graph(const Source_Graph& g){
        */
 	
     }
-
+#endif  
     //filtra grafo esterno: tieni solo 4 livello e edge interni.
     //itera su vertici. se lay ==4 && edges.count == 1 then collassa.
     

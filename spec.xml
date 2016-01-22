@@ -221,6 +221,7 @@
             <name>bridge_1</name>
             <port>1</port>
          </to>
+         <direction>1</direction>
       </edge>
       <edge>
          <from>
@@ -231,6 +232,7 @@
             <name>bus_2</name>
             <port>1</port>
          </to>
+         <direction>2</direction>
          <!--priority>2</priority-->
       </edge>
       <edge>

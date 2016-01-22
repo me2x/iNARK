@@ -36,18 +36,19 @@ enum Component_Type{
   BRIDGE,
   PERIPHERAL,
   MEMORY,
+  NOT_SPECIFIED,
   TYPE_ERROR
 };
 
 
 
 
-
+/*
 typedef struct{
   std::string component_name;
   int component_port;
 }Edge_Port;
-
+*/
 class Custom_Vertex
 {
 public:
@@ -56,6 +57,7 @@ public:
     std::map<int,int> ports; //TO REFINE tipo aggiungere solo per Lay 4.
     Component_Type type;
     Component_Priority_Category priority_category;
+    int direction; 
 };
 
 class Custom_Edge
@@ -64,12 +66,12 @@ public:
     Custom_Edge(void) : priority(NO_PRIORITY){}
     Custom_Edge(Priority p) : priority(p){}
     Priority priority;
-    Edge_Port to_port;
-    Edge_Port from_port;
+    /*Edge_Port*/ int to_port;
+    int from_port;
 };
 
 
-typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS,Custom_Vertex,Custom_Edge>Source_Graph;
+typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS,Custom_Vertex,Custom_Edge>Source_Graph;
 typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS,Custom_Vertex,Custom_Edge> Timing_Graph;
 typedef boost::graph_traits<Source_Graph>::vertex_descriptor vertex_t;
 typedef boost::graph_traits<Source_Graph>::edge_descriptor edge_t;
@@ -142,7 +144,7 @@ public:
   template <class Edge>
   void operator()(std::ostream &out, const Edge& e) const {
     PRINT_DEBUG("printing graph: edge is ("+boost::lexical_cast<std::string>(fpm[e])+","+boost::lexical_cast<std::string>(tpm[e])+") and its priority is: "+boost::lexical_cast<std::string>(pm[e]));
-    out <<  "[label=\"" << pm[e] << "\", taillabel=\"" << tpm[e] << "\", headlabel=\""<<fpm[e]<<"\"]";
+    out <<  "[label=\"" << pm[e] << "\", taillabel=\"" << fpm[e] << "\", headlabel=\""<<tpm[e]<<"\"]";
   }
 private:
   Priority_Map pm;
