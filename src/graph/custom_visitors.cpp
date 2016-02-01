@@ -50,7 +50,7 @@ void source_to_target_visitor::start_vertex(const vertex_t s, const boost::filte
       PRINT_DEBUG("exploring, start vertex: "<<g[s].name);
       if (start_flag == false) 
       {
-	PRINT_DEBUG("exploring, start flag is dddddfalse");
+	PRINT_DEBUG("exploring, start flag is ddfalse");
 	throw (2);
       }
       else
