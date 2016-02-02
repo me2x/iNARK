@@ -34,8 +34,9 @@
             <port>
                <id>1</id>
                <priority>2</priority>
+	       <isMaster>0</isMaster>
             </port>
-         </ports>
+	  </ports>
          <type>1</type>
       </component>
       <component>
@@ -45,14 +46,22 @@
             <port>
                <id>1</id>
                <priority>2</priority>
+	       <isMaster>1</isMaster>
+	       <associatedPort>11</associatedPort>
+            </port>
+	    <port>
+               <id>11</id>
+	       <isMaster>0</isMaster>
+	       <associatedPort>1</associatedPort>
             </port>
             <port>
                <id>2</id>
-               <priority>1</priority>
+               <priority>1</priority>        
+               <isMaster>1</isMaster>
             </port>
             <port>
-               <id>3</id>
-               <priority>1</priority>
+               <id>33</id>
+               <isMaster>0</isMaster>
             </port>
          </ports>
          <type>2</type>
@@ -65,6 +74,7 @@
             <port>
                <id>1</id>
                <priority>2</priority>
+	       <isMaster>1</isMaster>
             </port>
          </ports>
          <!--type>Memory</type-->
@@ -76,6 +86,7 @@
             <port>
                <id>1</id>
                <priority>1</priority>
+	       <isMaster>0</isMaster>
             </port>
          </ports>
          <type>1</type>
@@ -87,10 +98,24 @@
             <port>
                <id>1</id>
                <priority>1</priority>
+	        <isMaster>1</isMaster>
+	       <associatedPort>11</associatedPort>
+            </port>
+	    <port>
+               <id>11</id>
+	       <isMaster>0</isMaster>
+	       <associatedPort>1</associatedPort>
             </port>
             <port>
                <id>2</id>
                <priority>2</priority>
+	       <isMaster>1</isMaster>
+	       <associatedPort>22</associatedPort>
+            </port>
+	    <port>
+               <id>22</id>
+	       <isMaster>0</isMaster>
+	       <associatedPort>2</associatedPort>
             </port>
          </ports>
 	 <type>3</type>
@@ -102,28 +127,25 @@
             <port>
                <id>1</id>
                <priority>1</priority>
+	       <isMaster>1</isMaster>
             </port>
             <port>
                <id>2</id>
                <priority>2</priority>
+	       <isMaster>1</isMaster>
+	       <associatedPort>22</associatedPort>
+            </port>
+	    <port>
+               <id>22</id>
+	       <isMaster>0</isMaster>
+	       <associatedPort>2</associatedPort>
             </port>
             <port>
                <id>3</id>
-               <priority>1</priority>
+               <isMaster>0</isMaster>
             </port>
          </ports>
 	 <priority_handling>3</priority_handling>
-      </component>
-      <component>
-         <layer>4</layer>
-         <name>PE_1</name>
-         <ports>
-            <port>
-               <id>1</id>
-               <priority>2</priority>
-            </port>
-         </ports>
-         <!--type>Peripheral</type-->
       </component>
       <component>
          <layer>4</layer>
@@ -132,6 +154,24 @@
             <port>
                <id>1</id>
                <priority>2</priority>
+	       <isMaster>1</isMaster>
+            </port>
+         </ports>
+         <!--type>Peripheral</type-->
+      </component>
+      <component>
+         <layer>4</layer>
+         <name>PE_1</name>
+         <ports>
+            <port>
+               <id>1</id>
+               <priority>2</priority>
+	       <isMaster>1</isMaster>
+            </port>
+	    <port>
+               <id>2</id>
+               <priority>2</priority>
+	       <isMaster>0</isMaster>
             </port>
          </ports>
          <!--type>Peripheral</type-->
@@ -215,26 +255,48 @@
       <edge>
          <from>
             <name>bus_1</name>
-            <port>2</port>
+            <port>22</port>
          </from>
          <to>
             <name>bridge_1</name>
             <port>1</port>
          </to>
-         <direction>1</direction>
       </edge>
       <edge>
          <from>
             <name>bridge_1</name>
+            <port>11</port>
+         </from>
+         <to>
+            <name>bus_1</name>
             <port>2</port>
+         </to>
+      </edge>
+
+      <edge>
+         <from>
+            <name>bridge_1</name>
+            <port>22</port>
          </from>
          <to>
             <name>bus_2</name>
             <port>1</port>
          </to>
-         <direction>2</direction>
-         <!--priority>2</priority-->
       </edge>
+      <edge>
+         <from>
+            <name>bus_2</name>
+            <port>11</port>
+         </from>
+         <to>
+            <name>bridge_1</name>
+            <port>2</port>
+         </to>
+      </edge>
+
+
+
+
       <edge>
          <from>
             <name>bus_1</name>
@@ -259,12 +321,24 @@
       </edge>
       <edge>
          <from>
-            <name>bus_2</name>
+            <name>PE_1</name>
             <port>2</port>
          </from>
          <to>
+            <name>PE_2</name>
+            <port>1</port>
+         </to>
+         <!--priority>2</priority-->
+      </edge>
+      
+      <edge>
+         <from>
             <name>P_2</name>
             <port>1</port>
+         </from>
+         <to>
+            <name>bus_2</name>
+            <port>2</port>
          </to>
          <!--priority>2</priority-->
       </edge>
@@ -329,15 +403,7 @@
             <name>board_1</name>
          </to>
       </edge>
-      <edge>
-         <from>
-            <name>PE_2</name>
-         </from>
-         <to>
-            <name>PE_1</name>
-         </to>
-      </edge>
-      <edge>
+         <edge>
          <from>
             <name>PE_2</name>
          </from>

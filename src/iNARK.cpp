@@ -59,7 +59,7 @@ int main (int argc, char *argv[])
         }
         
     
-    custom_graph g = custom_graph();
+    source_graph g = source_graph();
     if (input_graph_name != "not_defined")
     {
     
@@ -104,15 +104,15 @@ int main (int argc, char *argv[])
       default:
       {
 	std::cerr<<"error: search depth value not valid"<<std::endl;
-#ifdef DEBUG	
+//#ifdef DEBUG	
 	std::cout<<"error: search depth value not valid"<<std::endl;
-#endif	
+//#endif	
 	return EXIT_FAILURE;
 	break;
       }
     }
     
-    
+#if 0
     timing_internal_graph ig = timing_internal_graph(g.get_graph());
     switch (search_type)
     {
@@ -144,22 +144,23 @@ int main (int argc, char *argv[])
       case 3:
       {
 	//ig.search_interfered_nodes(to_component, true);
-#ifdef DEBUG	
+//#ifdef DEBUG	
 	std::cout<<"not implemented yet"<<std::endl;
-#endif	
+//#endif	
 	break;
       }
       default:
       {
 	std::cerr<<"error: search type value not valid"<<std::endl;
-#ifdef DEBUG	
+//#ifdef DEBUG	
 	std::cout<<"error: search type value not valid"<<std::endl;
-#endif	
+//#endif	
 	return EXIT_FAILURE;
 	break;
       }
       
     }
+#endif
   }
   catch(const std::exception& e)  // Consider using a custom exception type for intentional throws. A good idea might be a `return_exception`.
   {   

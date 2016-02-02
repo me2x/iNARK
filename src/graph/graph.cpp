@@ -136,57 +136,57 @@ bool source_graph::create_graph(std::string xml)
                 }    
                 case CONTROLLER:
                 {
-                    local_graph[vt] = Third_Level_Vertex();
+                    Third_Level_Vertex vtx = Third_Level_Vertex();
                     if(v.second.get_child_optional("priority_handling"))
                     {
-                        local_graph[vt].OS_scheduler_type=int_To_Priority_Handler(v.second.get_child("priority_handling").get_value<int>());
+                        vtx.OS_scheduler_type=int_To_Priority_Handler(v.second.get_child("priority_handling").get_value<int>());
                     }
                     else
                     {
-                        error;
+                        PRINT_DEBUG("error no priority handling in os");
+                        //TODO error handling
                     }
-                    
+                    local_graph[vt] = vtx;
                     break;
                 }
                 case RESOURCE:
                 {
-                    local_graph[vt] = Fourth_Level_Vertex();
+                    Fourth_Level_Vertex vtx = Fourth_Level_Vertex();
                     if(v.second.get_child_optional("ports"))
                     {
-                        local_graph[vt].ports = std::map<int,Port>();
+                        vtx.ports_map = std::map<int,Port>();
                         BOOST_FOREACH(ptree::value_type &i_v,v.second.get_child("ports"))
                         {
                             Port p;
-                            p.is_master = leggi;
+                            p.is_master = i_v.second.get_child("isMaster").get_value<int>()==1? true : false;
                             p.id = i_v.second.get_child("id").get_value<int>();
-                            p.associated_port_id = NO_PORT;
+                            p.associated_port_id =i_v.second.get_child_optional("associatedPort")? i_v.second.get_child("associatedPort").get_value<int>():NO_PORT;
                             p.priority = i_v.second.get_child_optional("priority")?i_v.second.get_child("priority").get_value<int>():DEFAULT_PRIORITY;
-                            local_graph[vt].ports.insert(std::make_pair<int,int>(i_v.second.get_child("id").get_value<int>(),p);
+                            vtx.ports_map.insert(std::make_pair(i_v.second.get_child("id").get_value<int>(),p));
                         }
                     }
                     else
                     {
-                        error;
+                        PRINT_DEBUG("error no ports in a component");
+                        //TODO error handling
                     }
                     
                     if(v.second.get_child_optional("type"))
                     {
-                        local_graph[vt].Component_Type=int_To_Type(v.second.get_child("type").get_value<int>());
+                        vtx.component_type=int_To_Type(v.second.get_child("type").get_value<int>());
                     }
                     else
                     {
-                        error;
+                        PRINT_DEBUG("error no type in component");
+                        //TODO error handling
                     }
                     
                     if(v.second.get_child_optional("priority_handling"))
                     {
-                        local_graph[vt].Component_Priority_Category=int_To_Priority_Handler(v.second.get_child("priority_handling").get_value<int>());
+                        vtx.component_priority_type=int_To_Priority_Handler(v.second.get_child("priority_handling").get_value<int>());
                     }
-                    else
-                    {
-                        error;
-                    }
-                
+                    
+                    local_graph[vt] = vtx;
                     break;
                 }
                 case PHYSICAL:
@@ -204,7 +204,6 @@ bool source_graph::create_graph(std::string xml)
            
             
             vertex_map.insert(std::make_pair(local_graph[vt].name, vt));
-            PRINT_DEBUG(local_graph[vt].layer);
         }//m_modules.insert(v.second.data());
         BOOST_FOREACH(ptree::value_type &v,pt.get_child("root.edges"))
         {
@@ -219,15 +218,16 @@ bool source_graph::create_graph(std::string xml)
             PRINT_DEBUG("to  component is: "+local_graph[to_node].name+" and its port is: "+boost::lexical_cast<std::string>(to_port));
             PRINT_DEBUG("-----");
             edge_t e; bool b;
-            //build edge(s) sempre entrambi.
+            //build edge(s). per qualsiasi caso entrambi tranne che se di 4th livello, in tal caso solo andata.
             boost::tie(e,b) = boost::add_edge(from_node,to_node,local_graph);
             local_graph[e].from_port = from_port;
             local_graph[e].to_port = to_port;
-            
-            boost::tie(e,b) = boost::add_edge(to_node,from_node,local_graph);
-            local_graph[e].from_port = to_port;
-            local_graph[e].to_port = from_port;
-
+            if (local_graph[from_node].layer != RESOURCE || local_graph[to_node].layer != RESOURCE)
+            {
+                boost::tie(e,b) = boost::add_edge(to_node,from_node,local_graph);
+                local_graph[e].from_port = to_port;
+                local_graph[e].to_port = from_port;
+            }
 
 
         }
@@ -238,7 +238,7 @@ bool source_graph::create_graph(std::string xml)
         
           std::ofstream myfile;
   myfile.open ("/home/emanuele/Documents/tmp_graph/source_graph.dot");
-  boost::write_graphviz(myfile, local_graph,make_vertex_writer(boost::get(&Custom_Vertex::layer, local_graph),boost::get (&Custom_Vertex::name, local_graph),boost::get(&Custom_Vertex::ports, local_graph), boost::get(&Custom_Vertex::type,local_graph ), boost::get(&Custom_Vertex::priority_category,local_graph))
+  boost::write_graphviz(myfile, local_graph,make_vertex_writer(boost::get(&Custom_Vertex::layer, local_graph),boost::get (&Custom_Vertex::name, local_graph))
       ,make_edge_writer(boost::get(&Custom_Edge::from_port,local_graph),boost::get(&Custom_Edge::to_port,local_graph))
       //boost::make_label_writer(boost::get(&Custom_Edge::priority,local_graph))
 );
