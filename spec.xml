@@ -17,6 +17,12 @@
          <layer>3</layer>
          <name>OS_2</name>
          <priority_handling>2</priority_handling>
+	 <slots>
+	   <slot>
+	     <id>1</id>
+	     <priority>1</priority>
+	   </slot>
+	 </slots>
       </component>
       <component>
          <layer>2</layer>
@@ -26,6 +32,12 @@
          <layer>3</layer>
          <name>OS_1</name>
 	 <priority_handling>2</priority_handling>
+	 <slots>
+	   <slot>
+	     <id>1</id>
+	     <priority>1</priority>
+	   </slot>
+	 </slots>
       </component>
       <component>
          <layer>4</layer>
@@ -198,14 +210,14 @@
          <!--priority>2</priority-->
       </edge>
       <edge>
-         <from>
+         <to>
             <name>task_1</name>
             <!--port>1</port-->
-         </from>
-         <to>
-            <name>OS_1</name>
-            <!--port>1</port-->
          </to>
+         <from>
+            <name>OS_1</name>
+            <port>1</port>
+         </from>
          <priority>2</priority>
       </edge>
       <edge>
@@ -231,6 +243,7 @@
          </from>
          <to>
             <name>OS_2</name>
+	    <port>1</port>
          </to>
          <priority>2</priority>
       </edge>

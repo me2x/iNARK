@@ -206,9 +206,9 @@ public:
   template <class Edge>
   void operator()(std::ostream &out, const Edge& e) const {
     PRINT_DEBUG("printing graph: edge is ("+boost::lexical_cast<std::string>(fpm[e])+","+boost::lexical_cast<std::string>(tpm[e])+") ");
-    if (fpm[e] != -1){
-    out <<  "[taillabel=\"" << fpm[e] << "\", headlabel=\""<<tpm[e]<<"\"]";
-    }
+    
+    out <<  "["  <<((fpm[e] != -1) ? "taillabel=\"" +boost::lexical_cast<std::string>( fpm[e])+"\",": "") << (tpm[e] != -1 ?" headlabel=\""+  boost::lexical_cast<std::string>(tpm[e]) +"\"": "") <<"]";
+    
   }
 private:
   From_Port_Map fpm;

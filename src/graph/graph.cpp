@@ -146,6 +146,14 @@ bool source_graph::create_graph(std::string xml)
                         PRINT_DEBUG("error no priority handling in os");
                         //TODO error handling
                     }
+                    vtx.priority_slots = std::map<int,Scheduler_Slot>();
+                        BOOST_FOREACH(ptree::value_type &i_v,v.second.get_child("slots"))
+                        {
+                            Scheduler_Slot s;
+                            s.id = i_v.second.get_child("id").get_value<int>();
+                            s.pr = int_to_Priority(i_v.second.get_child("priority").get_value<int>());
+                            vtx.priority_slots.insert(std::make_pair(i_v.second.get_child("id").get_value<int>(),s));
+                        }
                     local_graph[vt] = vtx;
                     break;
                 }
