@@ -1,5 +1,5 @@
-#include "timing_internal_graph.h"
-#include "custom_visitors.h"
+#include "timing_internal_graph.hpp"
+#include "custom_visitors.hpp"
 
 timing_internal_graph::timing_internal_graph(const Source_Graph& g){
     //collassa grafo

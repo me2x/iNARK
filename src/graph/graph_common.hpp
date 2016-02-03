@@ -49,12 +49,18 @@ class Timing_Node;
 typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS,Custom_Vertex,Custom_Edge>Source_Graph;
 typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS,boost::property<boost::vertex_color_t, boost::default_color_type, Timing_Node> > Timing_Graph; //edge custom non serve piu.
 
+/*** 
+ * this class is a common interface.
+ * but it has to be instantiable in order to work with boost (don't know if the issue was due to the write graphwiz or the graph library, but if is not able to instantiate is not able to compile.
+ * every single object is then modified with a pointer to a child class, which will actually contain the correct explode_component function tailored to the correct layer. 
+ * for now only the timing graph is supported and the only possible eexplosion iis the timing one.
+*/
 class Custom_Vertex
 {
 public:
     std::string name;
     Layer layer;
-    void explode_component(Timing_Graph& graph, std::map<std::string, std::map< int, std::string> >& components_map ) {} //<old_comp.id <old_comp.port new_comp.id> >
+    void explode_component_timing(Timing_Graph& graph, std::map<std::string, std::map< int, std::string> >& components_map ) {} //<old_comp.id <old_comp.port new_comp.id> >
     
 };
 
@@ -82,14 +88,14 @@ struct Port {
 class First_Level_Vertex : public Custom_Vertex{
 public:    
     First_Level_Vertex () {layer = Layer::FUNCTION;}
-    void explode_component(Timing_Graph& graph, std::map<std::string, std::map< int, std::string> >& components_map ) const;
+    void explode_component_timing(Timing_Graph& graph, std::map<std::string, std::map< int, std::string> >& components_map ) const;
     
 };
 
 class Second_Level_Vertex :public Custom_Vertex{
 public: 
     Second_Level_Vertex () {layer = Layer::TASK;}
-    void explode_component(Timing_Graph& graph, std::map<std::string, std::map< int, std::string> >& components_map ) const ;
+    void explode_component_timing(Timing_Graph& graph, std::map<std::string, std::map< int, std::string> >& components_map ) const ;
 };
 
 class Third_Level_Vertex : public Custom_Vertex{
@@ -97,7 +103,7 @@ public:
     std::map <int, Scheduler_Slot> priority_slots; //serve ???? uno slot per ogni task, e all interno dello slot è segnato il livello di priorita. boh...
     Component_Priority_Category OS_scheduler_type;
     Third_Level_Vertex () {layer = Layer::CONTROLLER;}
-    void explode_component(Timing_Graph& graph, std::map<std::string, std::map< int, std::string> >& components_map ) const ;
+    void explode_component_timing(Timing_Graph& graph, std::map<std::string, std::map< int, std::string> >& components_map ) const ;
 };
 
 class Fourth_Level_Vertex :public  Custom_Vertex{
@@ -106,13 +112,13 @@ public:
     Component_Priority_Category component_priority_type;
     Component_Type component_type;
     Fourth_Level_Vertex () {layer = Layer::RESOURCE;}
-    void explode_component(Timing_Graph& graph, std::map<std::string, std::map< int, std::string> >& components_map ) const ;
+    void explode_component_timing(Timing_Graph& graph, std::map<std::string, std::map< int, std::string> >& components_map ) const ;
 };
 
 class Fifth_Level_Vertex : public Custom_Vertex{
 public: 
     Fifth_Level_Vertex () {layer = Layer::PHYSICAL;}
-    void explode_component(Timing_Graph& graph, std::map<std::string, std::map< int, std::string> >& components_map ) const ;
+    void explode_component_timing(Timing_Graph& graph, std::map<std::string, std::map< int, std::string> >& components_map ) const ;
 };
 
 class Timing_Node{// aggiungere sottoclasse 4thlvlTimingNode con associate_port_name,master_tasks e is_master rimuovendoli da qua. forse meglio
@@ -135,10 +141,10 @@ typedef boost::graph_traits<Source_Graph>::vertex_iterator vertex_iter;
 typedef boost::graph_traits<Source_Graph>::out_edge_iterator ext_out_edge_iter;
 typedef boost::graph_traits<Source_Graph>::edge_iterator edge_iter;
 
-typedef boost::graph_traits<Timing_Graph>::vertex_descriptor inner_vertex_t;
-typedef boost::graph_traits<Timing_Graph>::edge_descriptor inner_edge_t;
-typedef boost::graph_traits<Timing_Graph>::vertex_iterator inner_vertex_iter;
-typedef boost::graph_traits<Timing_Graph>::edge_iterator inner_edge_iter;
+typedef boost::graph_traits<Timing_Graph>::vertex_descriptor timing_vertex_t;
+typedef boost::graph_traits<Timing_Graph>::edge_descriptor timing_edge_t;
+typedef boost::graph_traits<Timing_Graph>::vertex_iterator timing_vertex_iter;
+typedef boost::graph_traits<Timing_Graph>::edge_iterator timing_edge_iter;
 
 
 template <class Layer_Map,class Name_Map>
@@ -200,7 +206,9 @@ public:
   template <class Edge>
   void operator()(std::ostream &out, const Edge& e) const {
     PRINT_DEBUG("printing graph: edge is ("+boost::lexical_cast<std::string>(fpm[e])+","+boost::lexical_cast<std::string>(tpm[e])+") ");
+    if (fpm[e] != -1){
     out <<  "[taillabel=\"" << fpm[e] << "\", headlabel=\""<<tpm[e]<<"\"]";
+    }
   }
 private:
   From_Port_Map fpm;

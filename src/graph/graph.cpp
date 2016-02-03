@@ -1,4 +1,4 @@
-#include "graph.h"
+#include "graph.hpp"
 
 #include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>

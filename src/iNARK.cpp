@@ -5,8 +5,8 @@
 #include "iNARKConfig.h"
 #include "boost/program_options.hpp"
 
-#include "graph/graph.h"
-#include "graph/timing_internal_graph.h"
+#include "graph/graph.hpp"
+#include "graph/timing_internal_graph.hpp"
 int main (int argc, char *argv[])
 {
   try

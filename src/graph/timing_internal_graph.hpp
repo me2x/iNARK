@@ -2,7 +2,7 @@
 #include <boost/graph/graph_utility.hpp>
 #include <boost/graph/breadth_first_search.hpp>
 #include <boost/graph/copy.hpp>
-#include "graph_common.h"
+#include "graph_common.hpp"
 
 class timing_internal_graph
        {

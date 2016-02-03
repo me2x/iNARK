@@ -1,7 +1,7 @@
 
 #include <boost/graph/graph_utility.hpp>
-#include "graph_common.h"
-#include "custom_visitors.h"
+#include "graph_common.hpp"
+#include "custom_visitors.hpp"
 
 
 class extern_edge_predicate_c;

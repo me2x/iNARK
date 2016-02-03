@@ -1,7 +1,7 @@
 #include <boost/graph/filtered_graph.hpp>
 #include <boost/graph/breadth_first_search.hpp>
 #include <boost/graph/undirected_dfs.hpp>
-#include "graph_common.h"
+#include "graph_common.hpp"
 class extern_vertex_predicate_c {
 public:
   extern_vertex_predicate_c() : graph_m(0) {}
