@@ -14,10 +14,10 @@ public:
 
     //bool search_component_dependences(std::string from, std::string to);
     bool create_graph(std::string xml_location);
-    const Source_Graph get_graph();
+    Source_Graph local_graph;
     
 private:
-    Source_Graph local_graph;
+    
     std::map<std::string, vertex_t> vertex_map;
 
 };

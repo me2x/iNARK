@@ -62,7 +62,6 @@ int main (int argc, char *argv[])
     source_graph g = source_graph();
     if (input_graph_name != "not_defined")
     {
-    
     g.create_graph(input_graph_name);
     }
     else 
@@ -112,8 +111,8 @@ int main (int argc, char *argv[])
       }
     }
     
-#if 0
-    timing_internal_graph ig = timing_internal_graph(g.get_graph());
+
+    timing_internal_graph ig = timing_internal_graph(g.local_graph);
     switch (search_type)
     {
         case 0: 
@@ -160,7 +159,7 @@ int main (int argc, char *argv[])
       }
       
     }
-#endif
+
   }
   catch(const std::exception& e)  // Consider using a custom exception type for intentional throws. A good idea might be a `return_exception`.
   {   

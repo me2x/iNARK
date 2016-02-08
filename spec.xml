@@ -50,6 +50,7 @@
             </port>
 	  </ports>
          <type>1</type>
+	 <priority_handling>1</priority_handling>
       </component>
       <component>
          <layer>4</layer>
@@ -89,6 +90,7 @@
 	       <isMaster>1</isMaster>
             </port>
          </ports>
+	 <priority_handling>1</priority_handling>
          <!--type>Memory</type-->
       </component>
       <component>
@@ -102,6 +104,7 @@
             </port>
          </ports>
          <type>1</type>
+	 <priority_handling>1</priority_handling>
       </component>
       <component>
          <layer>4</layer>
@@ -131,6 +134,7 @@
             </port>
          </ports>
 	 <type>3</type>
+	 <priority_handling>3</priority_handling>
       </component>
       <component>
          <layer>4</layer>
@@ -169,6 +173,7 @@
 	       <isMaster>1</isMaster>
             </port>
          </ports>
+	 <priority_handling>1</priority_handling>
          <!--type>Peripheral</type-->
       </component>
       <component>
@@ -186,6 +191,7 @@
 	       <isMaster>0</isMaster>
             </port>
          </ports>
+	 <priority_handling>1</priority_handling>
          <!--type>Peripheral</type-->
       </component>
       <component>
@@ -265,16 +271,7 @@
             <port>1</port>
          </to>
       </edge>
-      <edge>
-         <from>
-            <name>bus_1</name>
-            <port>22</port>
-         </from>
-         <to>
-            <name>bridge_1</name>
-            <port>1</port>
-         </to>
-      </edge>
+
       <edge>
          <from>
             <name>bridge_1</name>
@@ -293,13 +290,13 @@
          </from>
          <to>
             <name>bus_2</name>
-            <port>1</port>
+            <port>2</port>
          </to>
       </edge>
       <edge>
          <from>
             <name>bus_2</name>
-            <port>11</port>
+            <port>22</port>
          </from>
          <to>
             <name>bridge_1</name>
@@ -313,7 +310,7 @@
       <edge>
          <from>
             <name>bus_1</name>
-            <port>3</port>
+            <port>33</port>
          </from>
          <to>
             <name>memory_1</name>
@@ -351,7 +348,7 @@
          </from>
          <to>
             <name>bus_2</name>
-            <port>2</port>
+            <port>1</port>
          </to>
          <!--priority>2</priority-->
       </edge>

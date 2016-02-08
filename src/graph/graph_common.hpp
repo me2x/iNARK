@@ -3,7 +3,8 @@
 #include "debug_msg_handler.hpp"
 #include <boost/graph/graphviz.hpp>
 #include <boost/graph/undirected_dfs.hpp>
-
+#include <boost/graph/graph_utility.hpp>
+#include <functional>
 #ifndef GRAPH_COMMON_H
 #define GRAPH_COMMON_H
 
@@ -44,7 +45,18 @@ enum Component_Type{
 };
 class Custom_Vertex;
 class Custom_Edge;
-class Timing_Node;
+
+//timing node cannot be forward declared because of graph library: incomplete base
+class Timing_Node{// subclass removed: when doing the search the graph is passed by copy and the runtime properties like subclasses are lost.
+public:
+    std::string name;
+    Layer layer; //serve reitrodurlo per fermare la ricerca al terzo o quarto o quinto livello e per togliere edges 2 to 3 in 2nd phase of preparation: task propagation 
+    std::string associate_port_name; //default vuota. serve solo al 4th livello per le porte master&slave. NB non sono la slave che diventa master da un componente all altro ma la doppia porta che garantisce bidirezionalita
+    std::vector<std::string> master_tasks; //vettore che viene riempito in task propagation
+    bool is_master; //tiene traccia se un nodo rappresenta una porta master o una slave. ha senso solo al 4th lvl.
+};
+
+
 
 typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS,Custom_Vertex,Custom_Edge>Source_Graph;
 typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS,boost::property<boost::vertex_color_t, boost::default_color_type, Timing_Node> > Timing_Graph; //edge custom non serve piu.
@@ -54,13 +66,21 @@ typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS,bo
  * but it has to be instantiable in order to work with boost (don't know if the issue was due to the write graphwiz or the graph library, but if is not able to instantiate is not able to compile.
  * every single object is then modified with a pointer to a child class, which will actually contain the correct explode_component function tailored to the correct layer. 
  * for now only the timing graph is supported and the only possible eexplosion iis the timing one.
+ * the lambda is needed: the graph is passed by copy and the runtime (aka child) information is lost. 
+ * with this workaround the function pointer is modified with the function pointer of the child class, and when calling the father is calling the correct child one
 */
+
 class Custom_Vertex
 {
 public:
     std::string name;
     Layer layer;
-    void explode_component_timing(Timing_Graph& graph, std::map<std::string, std::map< int, std::string> >& components_map ) {} //<old_comp.id <old_comp.port new_comp.id> >
+    std::function<void(Timing_Graph& graph, std::map<std::string, std::map< int, std::string> >& components_map )> explode_component_timing;// ; //<old_comp.id <old_comp.port new_comp.id> >
+    template <class T>
+    void add_function (T& elem)
+    { 
+        explode_component_timing = [elem] (Timing_Graph& graph, std::map<std::string, std::map< int, std::string> >& components_map ) {elem.explode_component_timing(graph, components_map);};
+    }
     
 };
 
@@ -87,14 +107,12 @@ struct Port {
 
 class First_Level_Vertex : public Custom_Vertex{
 public:    
-    First_Level_Vertex () {layer = Layer::FUNCTION;}
     void explode_component_timing(Timing_Graph& graph, std::map<std::string, std::map< int, std::string> >& components_map ) const;
     
 };
 
-class Second_Level_Vertex :public Custom_Vertex{
+class Second_Level_Vertex : public Custom_Vertex{
 public: 
-    Second_Level_Vertex () {layer = Layer::TASK;}
     void explode_component_timing(Timing_Graph& graph, std::map<std::string, std::map< int, std::string> >& components_map ) const ;
 };
 
@@ -102,16 +120,14 @@ class Third_Level_Vertex : public Custom_Vertex{
 public:    
     std::map <int, Scheduler_Slot> priority_slots; //serve ???? uno slot per ogni task, e all interno dello slot è segnato il livello di priorita. boh...
     Component_Priority_Category OS_scheduler_type;
-    Third_Level_Vertex () {layer = Layer::CONTROLLER;}
     void explode_component_timing(Timing_Graph& graph, std::map<std::string, std::map< int, std::string> >& components_map ) const ;
 };
 
-class Fourth_Level_Vertex :public  Custom_Vertex{
+class Fourth_Level_Vertex : public Custom_Vertex{
 public: 
     std::map <int, Port> ports_map;
     Component_Priority_Category component_priority_type;
     Component_Type component_type;
-    Fourth_Level_Vertex () {layer = Layer::RESOURCE;}
     void explode_component_timing(Timing_Graph& graph, std::map<std::string, std::map< int, std::string> >& components_map ) const ;
 };
 
@@ -121,18 +137,7 @@ public:
     void explode_component_timing(Timing_Graph& graph, std::map<std::string, std::map< int, std::string> >& components_map ) const ;
 };
 
-class Timing_Node{// aggiungere sottoclasse 4thlvlTimingNode con associate_port_name,master_tasks e is_master rimuovendoli da qua. forse meglio
-public:
-    std::string name;
-    Layer layer; //serve reitrodurlo per fermare la ricerca al terzo o quarto o quinto livello e per togliere edges 2 to 3 in 2nd phase of preparation: task propagation 
-};
 
-class Fourth_Level_Timing_Node : public Timing_Node {
-public:
-    std::string associate_port_name; //default vuota. serve solo al 4th livello per le porte master&slave. NB non sono la slave che diventa master da un componente all altro ma la doppia porta che garantisce bidirezionalita
-    std::vector<std::string> master_tasks; //vettore che viene riempito in task propagation
-    bool is_master; //tiene traccia se un nodo rappresenta una porta master o una slave. ha senso solo al 4th lvl.
-};
 
 
 

@@ -126,12 +126,23 @@ bool source_graph::create_graph(std::string xml)
             {
                 case FUNCTION:
                 {
-                    local_graph[vt] = First_Level_Vertex();
+                    First_Level_Vertex vtx = First_Level_Vertex();
+                    vtx.name = (v.second.get_child("name")).get_value<std::string>();
+                    vtx.layer = FUNCTION;
+                    local_graph[vt] = vtx;
+                    local_graph[vt].add_function(vtx);
+                    
+                    //local_graph[vt].layer = FUNCTION;
                     break;
                 }
                 case TASK:
                 {
-                    local_graph[vt] = Second_Level_Vertex();
+                    Second_Level_Vertex vtx = Second_Level_Vertex();
+                    vtx.layer = TASK;
+                    vtx.name = (v.second.get_child("name")).get_value<std::string>();
+                    local_graph[vt] = vtx;
+                    local_graph[vt].add_function(vtx);
+                    
                     break;
                 }    
                 case CONTROLLER:
@@ -154,7 +165,13 @@ bool source_graph::create_graph(std::string xml)
                             s.pr = int_to_Priority(i_v.second.get_child("priority").get_value<int>());
                             vtx.priority_slots.insert(std::make_pair(i_v.second.get_child("id").get_value<int>(),s));
                         }
+                        
+                        
+                    vtx.layer = CONTROLLER;
+                    vtx.name = (v.second.get_child("name")).get_value<std::string>();
                     local_graph[vt] = vtx;
+                    local_graph[vt].add_function(vtx);
+                    
                     break;
                 }
                 case RESOURCE:
@@ -193,24 +210,33 @@ bool source_graph::create_graph(std::string xml)
                     {
                         vtx.component_priority_type=int_To_Priority_Handler(v.second.get_child("priority_handling").get_value<int>());
                     }
-                    
+                    else throw std::runtime_error("no priority handling in 4th level");
+                    vtx.layer = RESOURCE;
+                    vtx.name = (v.second.get_child("name")).get_value<std::string>();
                     local_graph[vt] = vtx;
+                    local_graph[vt].add_function(vtx);
+                    
                     break;
                 }
                 case PHYSICAL:
                 {
-                    local_graph[vt] = Fifth_Level_Vertex();
+                    Fifth_Level_Vertex vtx = Fifth_Level_Vertex();
+                    vtx.layer = PHYSICAL;
+                    vtx.name = (v.second.get_child("name")).get_value<std::string>();
+                    local_graph[vt] = vtx;
+                    local_graph[vt].add_function(vtx);
+                    
                     break;
                 }
                 
                 
                 
             }
-            local_graph[vt].name=(v.second.get_child("name")).get_value<std::string>();
             
             
-           
             
+           PRINT_DEBUG(local_graph[vt].layer);
+             
             vertex_map.insert(std::make_pair(local_graph[vt].name, vt));
         }//m_modules.insert(v.second.data());
         BOOST_FOREACH(ptree::value_type &v,pt.get_child("root.edges"))
@@ -261,7 +287,3 @@ return false;
 }
 #endif
 
-
-const Source_Graph source_graph::get_graph(){
-    return local_graph;
-}
