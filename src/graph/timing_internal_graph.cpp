@@ -230,8 +230,47 @@ timing_internal_graph::timing_internal_graph(Source_Graph g){
     boost::write_graphviz(myfile2, ig,make_vertex_writer(boost::get(&Timing_Node::layer, ig),boost::get (&Timing_Node::name, ig)));
     myfile2.close();  
       
+    //search for master tasks.
+    //preparation: get processors
+    std::pair<timing_vertex_iter, timing_vertex_iter> tvp;
+    std::vector <timing_vertex_t> processor_vertex_t;
+    for (tvp = vertices(ig); tvp.first != tvp.second; ++tvp.first)
+    {
+        if(ig[*tvp.first].type == PROCESSOR)
+        {
+            processor_vertex_t.push_back(*tvp.first);
+        }
+    }
+    //prepare color map
+    masters_task_research_visitor::colormap map = get(boost::vertex_color, ig);
+    for (tvp = vertices(ig); tvp.first != tvp.second; ++tvp.first)
+    {
+        if(ig[*tvp.first].layer == PHYSICAL || ig[*tvp.first].layer == FUNCTION || (ig[*tvp.first].type != PROCESSOR && ig[*tvp.first].layer == RESOURCE))
+        {
+            map[*tvp.first] = boost::default_color_type::black_color;
+        }
+    }
+    //search tasks for every processor
+    std::map<timing_vertex_t, std::vector <timing_vertex_t>> processor_to_task_map;
+    for(std::vector<timing_vertex_t>::iterator processor_iter = processor_vertex_t.begin();processor_iter != processor_vertex_t.end();++processor_iter)
+    {
+        std::vector <timing_vertex_t> vtxes;
+        masters_task_research_visitor vis = masters_task_research_visitor(vtxes);
+        vis.vertex_coloring = map; //should be passed by copy, so it should be ok
+        
+        boost::depth_first_visit(ig, *processor_iter,vis, map);
+        processor_to_task_map.insert(std::make_pair(*processor_iter, vtxes));
+    }
+#ifdef DEBUG
+    PRINT_DEBUG("processor to task mapping done. size of map is: "+boost::lexical_cast<std::string>(processor_to_task_map.size()));
+    for(std::map<timing_vertex_t, std::vector <timing_vertex_t>>::iterator debug_iter = processor_to_task_map.begin(); debug_iter != processor_to_task_map.end(); ++debug_iter)
+    {
+        PRINT_DEBUG("processor to task mapping done. size of vector is: "+boost::lexical_cast<std::string>((*debug_iter).second.size()));
+        for(std::vector <timing_vertex_t>::iterator debug_iter2 =  (*debug_iter).second.begin();debug_iter2 !=  (*debug_iter).second.end();++debug_iter2)
+            PRINT_DEBUG("processor to task mapping done. names of the vector are: "+ig[*debug_iter2].name);
+    }
     
-  
+#endif
 }
 timing_vertex_t timing_internal_graph::get_node_reference(std::string str)
 {

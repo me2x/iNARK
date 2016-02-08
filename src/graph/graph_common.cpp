@@ -166,7 +166,7 @@ void Fourth_Level_Vertex::explode_component_timing(Timing_Graph& graph, std::map
                     
                     graph[vt].layer=this->layer;
                     graph[vt].name=this->name+"$$"+boost::lexical_cast<std::string>((*iter).second.id);
-                   
+                    graph[vt].type=this->component_type;
                     (*iter).second.associated_port_id == NO_PORT ? graph[vt].associate_port_name = "" : graph[vt].associate_port_name = this->name+"$$"+boost::lexical_cast<std::string>((*iter).second.associated_port_id);
                     graph[vt].is_master = true;
                     
@@ -191,7 +191,7 @@ void Fourth_Level_Vertex::explode_component_timing(Timing_Graph& graph, std::map
                     graph[vt].name=this->name+"$$"+boost::lexical_cast<std::string>((*iter).second.id);
                     (*iter).second.associated_port_id == NO_PORT ? graph[vt].associate_port_name = "" : graph[vt].associate_port_name = this->name+"$$"+boost::lexical_cast<std::string>((*iter).second.associated_port_id);
                     graph[vt].is_master = false;
-                    
+                    graph[vt].type=this->component_type;
                   
                 
                     slaves.push_back(vt);
@@ -228,7 +228,7 @@ void Fourth_Level_Vertex::explode_component_timing(Timing_Graph& graph, std::map
                     graph[vt].name=this->name+"$$"+boost::lexical_cast<std::string>((*iter).second.id);
                     (*iter).second.associated_port_id == NO_PORT ? graph[vt].associate_port_name = "" : graph[vt].associate_port_name = this->name+"$$"+boost::lexical_cast<std::string>((*iter).second.associated_port_id);
                     graph[vt].is_master = true;
-                    
+                    graph[vt].type=this->component_type;
            
                     if (priority_map.count((*iter).second.priority) == 0)
                     {
@@ -251,6 +251,7 @@ void Fourth_Level_Vertex::explode_component_timing(Timing_Graph& graph, std::map
                     graph[vt].name=this->name+"$$"+boost::lexical_cast<std::string>((*iter).second.id);
                     (*iter).second.associated_port_id == NO_PORT ? graph[vt].associate_port_name = "" : graph[vt].associate_port_name = this->name+"$$"+boost::lexical_cast<std::string>((*iter).second.associated_port_id);
                     graph[vt].is_master = false;
+                    graph[vt].type=this->component_type;
                     slaves.push_back(vt);
                     tmp.insert(std::make_pair((*iter).second.id,graph[vt].name));
                     PRINT_DEBUG(graph[vt].name);
@@ -320,6 +321,7 @@ void Fourth_Level_Vertex::explode_component_timing(Timing_Graph& graph, std::map
                     graph[vt].name=this->name+"$$"+boost::lexical_cast<std::string>((*iter).second.id);
                     (*iter).second.associated_port_id == NO_PORT ? graph[vt].associate_port_name = "" : graph[vt].associate_port_name = this->name+"$$"+boost::lexical_cast<std::string>((*iter).second.associated_port_id);
                     graph[vt].is_master = true;
+                    graph[vt].type=this->component_type;
                     //finalize
                     masters.push_back(vt);
                     tmp.insert(std::make_pair((*iter).second.id,graph[vt].name));
@@ -332,6 +334,7 @@ void Fourth_Level_Vertex::explode_component_timing(Timing_Graph& graph, std::map
                     graph[vt].name=this->name+"$$"+boost::lexical_cast<std::string>((*iter).second.id);
                     (*iter).second.associated_port_id == NO_PORT ? graph[vt].associate_port_name = "" : graph[vt].associate_port_name = this->name+"$$"+boost::lexical_cast<std::string>((*iter).second.associated_port_id);
                     graph[vt].is_master = false;
+                    graph[vt].type=this->component_type;
                     slaves.push_back(vt);
                     tmp.insert(std::make_pair((*iter).second.id,graph[vt].name));
                     PRINT_DEBUG(graph[vt].name);

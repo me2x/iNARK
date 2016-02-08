@@ -203,6 +203,7 @@ bool source_graph::create_graph(std::string xml)
                     else
                     {
                         PRINT_DEBUG("error no type in component");
+                        vtx.component_type = TYPE_ERROR;
                         //TODO error handling
                     }
                     

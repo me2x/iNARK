@@ -3,7 +3,7 @@
 #include "graph_common.hpp"
 #include "custom_visitors.hpp"
 
-
+//TODO controlla che le forward servano a qualcosa.
 class extern_edge_predicate_c;
 class extern_vertex_predicate_c;
 class extern_visitor;

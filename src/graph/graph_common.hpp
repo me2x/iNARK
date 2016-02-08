@@ -51,7 +51,8 @@ class Timing_Node{// subclass removed: when doing the search the graph is passed
 public:
     std::string name;
     Layer layer; //serve reitrodurlo per fermare la ricerca al terzo o quarto o quinto livello e per togliere edges 2 to 3 in 2nd phase of preparation: task propagation 
-    std::string associate_port_name; //default vuota. serve solo al 4th livello per le porte master&slave. NB non sono la slave che diventa master da un componente all altro ma la doppia porta che garantisce bidirezionalita
+    Component_Type type = NOT_SPECIFIED;
+    std::string associate_port_name = ""; //default vuota. serve solo al 4th livello per le porte master&slave. NB non sono la slave che diventa master da un componente all altro ma la doppia porta che garantisce bidirezionalita
     std::vector<std::string> master_tasks; //vettore che viene riempito in task propagation
     bool is_master; //tiene traccia se un nodo rappresenta una porta master o una slave. ha senso solo al 4th lvl.
 };
