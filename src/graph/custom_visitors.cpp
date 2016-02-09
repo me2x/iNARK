@@ -1,5 +1,26 @@
 #include "custom_visitors.hpp"
 
+
+
+bool lv4_vertex_predicate_c::operator()(const vertex_t& vertex_id) const
+{
+    return (*graph_m)[vertex_id].layer == Layer::RESOURCE ;
+}
+
+bool true_edge_predicate::operator()(const edge_t& edge_id) const
+{
+    return true; 
+}
+
+
+bool layer_filter_vertex_predicate_c::operator()(const vertex_t& vertex_id) const
+{
+    return (*graph_m)[vertex_id].layer <= layer ;
+}
+
+
+
+
 #if 0
 inner_vertex_predicate_c::inner_vertex_predicate_c(Timing_Graph& ig, Layer threshold_input, std::string source_os)
 {

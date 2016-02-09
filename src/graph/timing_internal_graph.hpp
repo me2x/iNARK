@@ -1,4 +1,4 @@
-//#include <boost/graph/filtered_graph.hpp>
+#include <boost/graph/filtered_graph.hpp>
 #include <boost/graph/graph_utility.hpp>
 #include <boost/graph/breadth_first_search.hpp>
 #include <boost/graph/copy.hpp>
@@ -14,5 +14,6 @@ private:
     Timing_Graph ig;
     timing_vertex_t get_node_reference (std::string);
     std::map<std::string, std::map< int, std::string> > components_map;
+    std::map<std::string, timing_vertex_t> name_to_node_map;
     
 };

@@ -15,11 +15,7 @@ timing_internal_graph::timing_internal_graph(Source_Graph g){
     //risistemare la parte dopo: non mi servono piu i 3 to 4 edges, basta lasciare ogni os collegato al suo so. mantenere intra layer, solo spostarli su priorità desiderata.
     //per ogni edge, crea andata e ritorno nel bidirezionale. tranne che per gli intra layer e i link tra 4 e 5th livello. 3 to 4th lvl vanno creati dopo aver collassato
     //il 4th lvl guardando le priorita delle porte. 4 to 5 vanno mappati subito dopo il collasso a causa di possibile presenza di componenti mappati su stesso nodo collassato presenti su piu board
-    std::ofstream myfile;
-    myfile.open ("/home/emanuele/Documents/tmp_graph/aaafiltrato.dot");
-    boost::write_graphviz(myfile, ig,make_vertex_writer(boost::get(&Timing_Node::layer, ig),boost::get (&Timing_Node::name, ig)));
-    myfile.close();
-    
+   
     PRINT_DEBUG("components map size is: "+boost::lexical_cast<std::string>(components_map.size()));
     
     edge_iter ei, ei_end;
@@ -251,10 +247,10 @@ timing_internal_graph::timing_internal_graph(Source_Graph g){
         }
     }
     //search tasks for every processor
-    std::map<timing_vertex_t, std::vector <timing_vertex_t>> processor_to_task_map;
+    std::map<timing_vertex_t, std::vector <std::string>> processor_to_task_map;
     for(std::vector<timing_vertex_t>::iterator processor_iter = processor_vertex_t.begin();processor_iter != processor_vertex_t.end();++processor_iter)
     {
-        std::vector <timing_vertex_t> vtxes;
+        std::vector <std::string> vtxes;
         masters_task_research_visitor vis = masters_task_research_visitor(vtxes);
         vis.vertex_coloring = map; //should be passed by copy, so it should be ok
         
@@ -263,14 +259,62 @@ timing_internal_graph::timing_internal_graph(Source_Graph g){
     }
 #ifdef DEBUG
     PRINT_DEBUG("processor to task mapping done. size of map is: "+boost::lexical_cast<std::string>(processor_to_task_map.size()));
-    for(std::map<timing_vertex_t, std::vector <timing_vertex_t>>::iterator debug_iter = processor_to_task_map.begin(); debug_iter != processor_to_task_map.end(); ++debug_iter)
+    for(std::map<timing_vertex_t, std::vector <std::string>>::iterator debug_iter = processor_to_task_map.begin(); debug_iter != processor_to_task_map.end(); ++debug_iter)
     {
         PRINT_DEBUG("processor to task mapping done. size of vector is: "+boost::lexical_cast<std::string>((*debug_iter).second.size()));
-        for(std::vector <timing_vertex_t>::iterator debug_iter2 =  (*debug_iter).second.begin();debug_iter2 !=  (*debug_iter).second.end();++debug_iter2)
-            PRINT_DEBUG("processor to task mapping done. names of the vector are: "+ig[*debug_iter2].name);
+        PRINT_DEBUG("processor to task mapping done. name of processor is is: "+ig[(*debug_iter).first].name);
+        for(std::vector <std::string>::iterator debug_iter2 =  (*debug_iter).second.begin();debug_iter2 !=  (*debug_iter).second.end();++debug_iter2)
+            PRINT_DEBUG("processor to task mapping done. names of the vector are: "+*debug_iter2);
     }
     
 #endif
+
+    //filter graph (keep only 4th level)
+    boost::filtered_graph<Timing_Graph,true_edge_predicate,lv4_vertex_predicate_c> ifg (ig,true_edge_predicate(ig),lv4_vertex_predicate_c(ig));
+    
+    std::ofstream myfile;
+    myfile.open ("/home/emanuele/Documents/tmp_graph/aaafiltrato.dot");
+    boost::write_graphviz(myfile, ifg,make_vertex_writer(boost::get(&Timing_Node::layer, ifg),boost::get (&Timing_Node::name, ifg)));
+    myfile.close();
+    //build a map with the association name :: timing_vertex_t to pass to the following algorithms. only the 4th level nodes are needed
+    std::pair<boost::filtered_graph<Timing_Graph,true_edge_predicate,lv4_vertex_predicate_c>::vertex_iterator, boost::filtered_graph<Timing_Graph,true_edge_predicate,lv4_vertex_predicate_c>::vertex_iterator> ftvp;
+    
+    for (ftvp = vertices(ifg); ftvp.first != ftvp.second; ++ftvp.first)
+    {
+        name_to_node_map.insert(std::make_pair(ifg[*ftvp.first].name,*ftvp.first ));
+    }
+    
+    
+    
+    //for eaech processor, do a dfs or bfs to search interfered tasks. that is, master ports reached from a slave one.
+    // start: slave port of processor: flag = true.
+    // next: is_master, flag -> save, unset, continue
+    // next: is_master, !flag -> continue
+    // next: is_slave, !flag -> set
+    masters_task_setter_visitor::colormap master_setter_map = get(boost::vertex_color, ifg);
+    
+   
+    for(std::vector<timing_vertex_t>::iterator processor_iter = processor_vertex_t.begin();processor_iter != processor_vertex_t.end();++processor_iter)
+    {
+        std::vector<timing_vertex_t> result;
+        for (ftvp = vertices(ifg); ftvp.first != ftvp.second; ++ftvp.first)
+            master_setter_map[*ftvp.first] = boost::default_color_type::white_color;
+        masters_task_setter_visitor master_setter_vis = masters_task_setter_visitor(result, name_to_node_map);
+        master_setter_vis.vertex_coloring=master_setter_map;
+        boost::depth_first_visit(ifg, *processor_iter,master_setter_vis, master_setter_map);
+        
+        
+        //analyze result.
+        for(std::vector<timing_vertex_t>::iterator result_it = result.begin(); result_it != result.end(); ++result_it)
+            for(std::vector <std::string>::iterator task_it =processor_to_task_map.at(*processor_iter).begin();task_it != processor_to_task_map.at(*processor_iter).end(); ++task_it)
+                ig[*result_it].master_tasks.insert(*task_it);
+    }
+
+    
+     for (tvp = vertices(ig); tvp.first != tvp.second; ++tvp.first)
+    {
+        PRINT_DEBUG("after master setter step. the master of: "+ig[*tvp.first].name+" are (size): "+boost::lexical_cast<std::string>(ig[*tvp.first].master_tasks.size()));
+    }
 }
 timing_vertex_t timing_internal_graph::get_node_reference(std::string str)
 {
@@ -286,6 +330,20 @@ timing_vertex_t timing_internal_graph::get_node_reference(std::string str)
 }
 bool timing_internal_graph::search_path(std::string from, std::string to, Layer l)
 {
+    
+    boost::filtered_graph<Timing_Graph,true_edge_predicate,layer_filter_vertex_predicate_c> ifg (ig,true_edge_predicate(ig),layer_filter_vertex_predicate_c(ig,l));
+    exploration_from_interferes_with_to_visitor::colormap master_setter_map = get(boost::vertex_color, ifg);
+    std::pair<boost::filtered_graph<Timing_Graph,true_edge_predicate,layer_filter_vertex_predicate_c>::vertex_iterator, boost::filtered_graph<Timing_Graph,true_edge_predicate,layer_filter_vertex_predicate_c>::vertex_iterator> ftvp;
+    for (ftvp = vertices(ifg); ftvp.first != ftvp.second; ++ftvp.first)
+        master_setter_map[*ftvp.first] = boost::default_color_type::white_color;
+    exploration_from_interferes_with_to_visitor master_setter_vis = exploration_from_interferes_with_to_visitor(get_node_reference(to), name_to_node_map);
+    master_setter_vis.vertex_coloring=master_setter_map;
+    boost::depth_first_visit(ifg, get_node_reference(from),master_setter_vis, master_setter_map);
+    
+    
+    
+    
+    
     #if 0
   vertex_t source_os;
   if (l != CONTROLLER)
