@@ -1,7 +1,10 @@
 #include "custom_visitors.hpp"
 
 
-
+bool task_search_filter_c::operator()(const vertex_t& vertex_id) const
+{
+    return !((*graph_m)[vertex_id].layer == PHYSICAL || (*graph_m)[vertex_id].layer == FUNCTION || ((*graph_m)[vertex_id].type != PROCESSOR && (*graph_m)[vertex_id].layer == RESOURCE));
+}
 bool lv4_vertex_predicate_c::operator()(const vertex_t& vertex_id) const
 {
     return (*graph_m)[vertex_id].layer == Layer::RESOURCE ;

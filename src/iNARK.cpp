@@ -11,10 +11,6 @@ int main (int argc, char *argv[])
 {
   try
   {
-#ifdef DEBUG
-    std::cout<<"asd"<<std::endl;
-#endif
-
     std::string input_graph_name = "not_defined";
     std::string from_component = "not_defined";
     std::string to_component = "not_defined";
@@ -39,6 +35,8 @@ int main (int argc, char *argv[])
    // if (ig.search_path("task_1", "task_2",SAFETY_CRITICAL,RESOURCE))
 
         if (vm.count("help")) {  
+            std::cout << "Usage: provide one of all the following options: "<<std::endl;
+            std::cout << "input, source, target, type, depth"<< std::endl<< std::endl;
             std::cout << desc << "\n";
             return 0;
         }
@@ -66,11 +64,10 @@ int main (int argc, char *argv[])
     }
     else 
     {
-        std::cerr<<"input file not found"<<std::endl;
-#ifdef DEBUG	
-	std::cout<<"input file not found"<<std::endl;
-#endif	
-	return EXIT_FAILURE;
+        std::cout<<std::endl<<std::endl<<"\t\t\tinput file not found"<<std::endl<<std::endl;
+        std::cout << desc << "\n";
+        
+        return 0;
     }
     
     Layer l = LAYER_ERROR;

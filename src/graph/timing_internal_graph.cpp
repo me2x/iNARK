@@ -32,7 +32,7 @@ timing_internal_graph::timing_internal_graph(Source_Graph g){
         //mancano 4 to 5: da moltiplicare.
         //all edges are in 1:1 between the physical graph to the internal representation, exept the edges from l4 to l5. 
         //for that layer i have to build one edge for each new resource to the physical component
-        if (g[old_graph_source].layer != PHYSICAL && g[old_graph_target].layer != PHYSICAL)
+        if (!(g[old_graph_source].layer != PHYSICAL && g[old_graph_target].layer == PHYSICAL)&& !(g[old_graph_source].layer == PHYSICAL && g[old_graph_target].layer != PHYSICAL))
         {
             if (components_map.count(g[old_graph_source].name) != 0)
             {
@@ -237,25 +237,22 @@ timing_internal_graph::timing_internal_graph(Source_Graph g){
             processor_vertex_t.push_back(*tvp.first);
         }
     }
-    //prepare color map
-    masters_task_research_visitor::colormap map = get(boost::vertex_color, ig);
-    for (tvp = vertices(ig); tvp.first != tvp.second; ++tvp.first)
-    {
-        if(ig[*tvp.first].layer == PHYSICAL || ig[*tvp.first].layer == FUNCTION || (ig[*tvp.first].type != PROCESSOR && ig[*tvp.first].layer == RESOURCE))
-        {
-            map[*tvp.first] = boost::default_color_type::black_color;
-        }
-    }
     //search tasks for every processor
+            
+    boost::filtered_graph<Timing_Graph,true_edge_predicate,task_search_filter_c> task_per_processor_fg (ig,true_edge_predicate(ig),task_search_filter_c(ig));   
+    masters_task_research_visitor::colormap map = get(boost::vertex_color, task_per_processor_fg);
+    std::pair<boost::filtered_graph<Timing_Graph,true_edge_predicate,task_search_filter_c>::vertex_iterator, boost::filtered_graph<Timing_Graph,true_edge_predicate,task_search_filter_c>::vertex_iterator> processor_to_task_f_vp;
     std::map<timing_vertex_t, std::vector <std::string>> processor_to_task_map;
     for(std::vector<timing_vertex_t>::iterator processor_iter = processor_vertex_t.begin();processor_iter != processor_vertex_t.end();++processor_iter)
     {
         std::vector <std::string> vtxes;
         masters_task_research_visitor vis = masters_task_research_visitor(vtxes);
-        vis.vertex_coloring = map; //should be passed by copy, so it should be ok
-        
-        boost::depth_first_visit(ig, *processor_iter,vis, map);
+        vis.vertex_coloring = map; //should be passed by copy, so it should be ok. no. it is modified by reference so has to be resetted every time. note that it also has to be re_blackened
+        //filtered graph?
+        boost::depth_first_visit(task_per_processor_fg, *processor_iter,vis, map);
         processor_to_task_map.insert(std::make_pair(*processor_iter, vtxes));
+        for (processor_to_task_f_vp = vertices(task_per_processor_fg); processor_to_task_f_vp.first != processor_to_task_f_vp.second; ++processor_to_task_f_vp.first)
+            map[*processor_to_task_f_vp.first] = boost::default_color_type::white_color;
     }
 #ifdef DEBUG
     PRINT_DEBUG("processor to task mapping done. size of map is: "+boost::lexical_cast<std::string>(processor_to_task_map.size()));
@@ -264,9 +261,10 @@ timing_internal_graph::timing_internal_graph(Source_Graph g){
         PRINT_DEBUG("processor to task mapping done. size of vector is: "+boost::lexical_cast<std::string>((*debug_iter).second.size()));
         PRINT_DEBUG("processor to task mapping done. name of processor is is: "+ig[(*debug_iter).first].name);
         for(std::vector <std::string>::iterator debug_iter2 =  (*debug_iter).second.begin();debug_iter2 !=  (*debug_iter).second.end();++debug_iter2)
+        {
             PRINT_DEBUG("processor to task mapping done. names of the vector are: "+*debug_iter2);
+        }
     }
-    
 #endif
 
     //filter graph (keep only 4th level)
@@ -314,6 +312,8 @@ timing_internal_graph::timing_internal_graph(Source_Graph g){
      for (tvp = vertices(ig); tvp.first != tvp.second; ++tvp.first)
     {
         PRINT_DEBUG("after master setter step. the master of: "+ig[*tvp.first].name+" are (size): "+boost::lexical_cast<std::string>(ig[*tvp.first].master_tasks.size()));
+        for (std::set<std::string>::iterator debug_iter=ig[*tvp.first].master_tasks.begin();debug_iter!=ig[*tvp.first].master_tasks.end();++debug_iter)
+            PRINT_DEBUG("and the task are: "+*debug_iter);
     }
 }
 timing_vertex_t timing_internal_graph::get_node_reference(std::string str)
@@ -330,8 +330,10 @@ timing_vertex_t timing_internal_graph::get_node_reference(std::string str)
 }
 bool timing_internal_graph::search_path(std::string from, std::string to, Layer l)
 {
-    
+    PRINT_DEBUG("from is: "+from +"and get_node_reference(from) returns vertex: "+ig[get_node_reference(from)].name);
+    PRINT_DEBUG("to is: "+to +"and get_node_reference(from) returns vertex: "+ig[get_node_reference(to)].name);
     boost::filtered_graph<Timing_Graph,true_edge_predicate,layer_filter_vertex_predicate_c> ifg (ig,true_edge_predicate(ig),layer_filter_vertex_predicate_c(ig,l));
+    PRINT_DEBUG("in the filtered graph those nodes are from: "+ifg[get_node_reference(from)].name+" and to: "+ifg[get_node_reference(to)].name);
     exploration_from_interferes_with_to_visitor::colormap master_setter_map = get(boost::vertex_color, ifg);
     std::pair<boost::filtered_graph<Timing_Graph,true_edge_predicate,layer_filter_vertex_predicate_c>::vertex_iterator, boost::filtered_graph<Timing_Graph,true_edge_predicate,layer_filter_vertex_predicate_c>::vertex_iterator> ftvp;
     for (ftvp = vertices(ifg); ftvp.first != ftvp.second; ++ftvp.first)

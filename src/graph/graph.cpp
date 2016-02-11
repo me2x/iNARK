@@ -116,7 +116,7 @@ bool source_graph::create_graph(std::string xml)
 {
     using boost::property_tree::ptree;
     ptree pt;
-    read_xml("/home/emanuele/iNARK/spec.xml",pt);
+    read_xml("/home/emanuele/iNARK/spec_contrex.xml",pt);
     // create a typedef for the Source_Graph type
     // Source_Graph g;
         BOOST_FOREACH(ptree::value_type &v,pt.get_child("root.components"))
@@ -202,7 +202,7 @@ bool source_graph::create_graph(std::string xml)
                     }
                     else
                     {
-                        PRINT_DEBUG("error no type in component");
+                        PRINT_DEBUG("error no type in component: "+ v.second.get_child("name").get_value<std::string>());
                         vtx.component_type = TYPE_ERROR;
                         //TODO error handling
                     }

@@ -54,7 +54,7 @@ public:
     Component_Type type = NOT_SPECIFIED;
     std::string associate_port_name = ""; //default vuota. serve solo al 4th livello per le porte master&slave. NB non sono la slave che diventa master da un componente all altro ma la doppia porta che garantisce bidirezionalita
     std::set<std::string> master_tasks; //vettore che viene riempito in task propagation
-    bool is_master; //tiene traccia se un nodo rappresenta una porta master o una slave. ha senso solo al 4th lvl.
+    bool is_master = false; //tiene traccia se un nodo rappresenta una porta master o una slave. ha senso solo al 4th lvl.
 };
 
 

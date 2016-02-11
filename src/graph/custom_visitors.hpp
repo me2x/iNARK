@@ -46,6 +46,16 @@ private:
 
 
 #endif
+
+class task_search_filter_c {
+public:
+  task_search_filter_c() : graph_m(0) {}
+  task_search_filter_c(const Timing_Graph& g) : graph_m(&g){}
+  bool operator()(const vertex_t& vertex_id) const;
+private:
+  const Timing_Graph* graph_m;
+};
+
 class layer_filter_vertex_predicate_c {
 public:
   layer_filter_vertex_predicate_c() : graph_m(0) {}
@@ -123,6 +133,8 @@ struct masters_task_setter_visitor :public boost::default_dfs_visitor{
   std::vector<timing_vertex_t>* processor_master_tasks;
   std::map<std::string,timing_vertex_t>* reference_map;
   std::set<timing_vertex_t> lockers;
+  std::map<timing_vertex_t, std::set<timing_vertex_t>> to_be_whited_on_callback ;
+  timing_vertex_t actual_master;
   mutable bool flag;
   masters_task_setter_visitor (std::vector<timing_vertex_t>& results, std::map<std::string,timing_vertex_t>& references_map)
   {
@@ -139,6 +151,9 @@ struct masters_task_setter_visitor :public boost::default_dfs_visitor{
             {
                 flag = false;
                 //nodo è const: non posso inserire master task
+                actual_master = v;
+                std::set<timing_vertex_t> temp;
+                to_be_whited_on_callback.insert(std:: make_pair(v,temp));
                 processor_master_tasks->push_back(v);
                 PRINT_DEBUG("masters_task_setter_visitor: adding node: "+ g[v].name);
                 if(g[v].associate_port_name != "")
@@ -152,6 +167,10 @@ struct masters_task_setter_visitor :public boost::default_dfs_visitor{
             else if (!g[v].is_master && !flag)
             {
                 flag = true;
+            }
+            if(g[v].is_master && !flag)
+            {
+                to_be_whited_on_callback.at(actual_master).insert(v);
             }
             //else continue;
             boost::default_dfs_visitor::discover_vertex(v,g);
@@ -176,6 +195,11 @@ struct masters_task_setter_visitor :public boost::default_dfs_visitor{
                 vertex_coloring[reference_map->at(g[v].associate_port_name)] = boost::default_color_type::white_color;
                 PRINT_DEBUG("masters_task_setter_visitor: unlocking");
             }
+            if (to_be_whited_on_callback.count(v) != 0)
+            {
+                for (std::set<timing_vertex_t>::iterator it = to_be_whited_on_callback.at(v).begin();it != to_be_whited_on_callback.at(v).end(); ++it)
+                    vertex_coloring[*it] = boost::default_color_type::white_color ;
+            }
             boost::default_dfs_visitor::finish_vertex(v,g);
         }
 };
@@ -196,28 +220,45 @@ struct exploration_from_interferes_with_to_visitor :public boost::default_dfs_vi
     template<typename Vertex, typename Graph>
         void discover_vertex(Vertex v, Graph const& g) {
             std::cout<<"exploration_from_interferes_with_to_visitor: calling discover_vertex "<< g[v].name <<std::endl;
+#ifdef DEBUG
+            std::string is_master_string =(g[v].is_master)?"true":"false";
+            std::string flag_string = flag?"true":"false";
+            PRINT_DEBUG("exploration_from_interferes_with_to_visitor: is master value is: "+is_master_string+" and flag is: "+flag_string);
+#endif
             if(g[v].is_master && flag)
             {
                 flag = false;
                 //nodo da ignorare. devo pero scurire nodo associato.
-                PRINT_DEBUG("exploration_from_interferes_with_to_visitor: adding node: "+ g[v].name);
                 if(g[v].associate_port_name != "")
                 {
                     vertex_coloring[reference_map->at(g[v].associate_port_name)] = boost::default_color_type::black_color; ///vero problema. 
                     lockers.insert(v);
-                    PRINT_DEBUG("exploration_from_interferes_with_to_visitor: locking");
+                    PRINT_DEBUG("exploration_from_interferes_with_to_visitor: locking "+ g[v].associate_port_name);
                 }
                 
             }
-            else if (!g[v].is_master && !flag)
+            else if (!g[v].is_master && !flag && g[v].layer == Layer::RESOURCE)
             {
                 flag = true;
             }
+            else if (g[v].layer == Layer::PHYSICAL)
+            {
+                flag=false;
+            }
             else if (g[v].is_master && !flag)
             {
+                PRINT_DEBUG("exploration_from_interferes_with_to_visitor: controllo master tasks cercando: "+g[to].name);
                 if (g[v].master_tasks.count(g[to].name) != 0)
-                    throw std::runtime_error ("trovato");
+                    throw std::runtime_error ("trovato in master task");
             }
+             else if (v == to)
+                throw std::runtime_error ("trovato stesso nodo");
+#ifdef DEBUG
+            else{
+            std::cout << "exploration_from_interferes_with_to_visitor: no alternative found in the if wall"<<std::endl;
+            }
+#endif
+           
             //else continue;
             boost::default_dfs_visitor::discover_vertex(v,g);
         }
@@ -230,7 +271,7 @@ struct exploration_from_interferes_with_to_visitor :public boost::default_dfs_vi
         }
     template<typename Vertex, typename Graph>
         void finish_vertex(Vertex v, Graph const& g) {
-            std::cout<<"calling exploration_from_interferes_with_to_visitor"<< g[v].name <<std::endl;
+            std::cout<<"calling exploration_from_interferes_with_to_visitor finish vertex"<< g[v].name <<std::endl;
             if (!g[v].is_master && flag)
             {
                 flag = false;
@@ -239,7 +280,7 @@ struct exploration_from_interferes_with_to_visitor :public boost::default_dfs_vi
             {
                 lockers.erase(v);
                 vertex_coloring[reference_map->at(g[v].associate_port_name)] = boost::default_color_type::white_color;
-                PRINT_DEBUG("exploration_from_interferes_with_to_visitor: unlocking");
+                PRINT_DEBUG("exploration_from_interferes_with_to_visitor: unlocking "+ g[v].associate_port_name);
             }
             boost::default_dfs_visitor::finish_vertex(v,g);
         }
