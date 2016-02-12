@@ -208,7 +208,9 @@ struct exploration_from_interferes_with_to_visitor :public boost::default_dfs_vi
   timing_vertex_t to; 
   std::map<std::string,timing_vertex_t>* reference_map;
   std::set<timing_vertex_t> lockers;
+  std::set<timing_vertex_t> OS_locked;
   mutable bool flag;
+  std::string match_OS_name, OS_name = "";
   exploration_from_interferes_with_to_visitor (timing_vertex_t init_to, std::map<std::string,timing_vertex_t>& references_map)
   {
       to = init_to;
@@ -269,6 +271,40 @@ struct exploration_from_interferes_with_to_visitor :public boost::default_dfs_vi
             flag = true;
             boost::default_dfs_visitor::start_vertex(v,g);
         }
+        template<typename Edge, typename Graph>
+        void examine_edge(Edge e, Graph const& g) 
+        {
+            std::cout<<"exploration_from_interferes_with_to_visitor: examine edge "<< g[boost::source<>(e,g)].name << "-" <<g[boost::target<>(e,g)].name <<std::endl;
+            if(g[boost::source<>(e,g)].layer == TASK && g[boost::target<>(e,g)].layer == CONTROLLER && OS_name == "")
+            {
+                OS_name = g[boost::target<>(e,g)].name;
+                std::string delimiter = "$$";
+                match_OS_name= OS_name.substr(0, OS_name.find(delimiter));
+                PRINT_DEBUG("OS locking: match substr is: " +match_OS_name+" and original name is: "+OS_name);
+            }
+            else if (OS_name != "")
+            {
+                std::string tmp = (g[boost::target<>(e,g)].name);
+                PRINT_DEBUG (tmp+" find "+match_OS_name);
+                if (tmp.find(match_OS_name)!= tmp.npos)
+                {
+                    vertex_coloring[boost::target<>(e,g)] = boost::default_color_type::black_color;
+                    OS_locked.insert(boost::target<>(e,g));
+                    PRINT_DEBUG("OS locking: match found on node: " +g[boost::target<>(e,g)].name);
+                }
+                else if (g[boost::target<>(e,g)].layer == TASK)
+                {
+                    if (boost::target<>(e,g) == to)
+                        throw std::runtime_error ("trovato stesso nodo esaminando edge");
+                    else 
+                    {
+                    vertex_coloring[boost::target<>(e,g)] = boost::default_color_type::black_color;
+                    PRINT_DEBUG("task locking: match found on node: " +g[boost::target<>(e,g)].name);
+                    }
+                }
+            }
+            boost::default_dfs_visitor::examine_edge(e,g);
+        }
     template<typename Vertex, typename Graph>
         void finish_vertex(Vertex v, Graph const& g) {
             std::cout<<"calling exploration_from_interferes_with_to_visitor finish vertex"<< g[v].name <<std::endl;
@@ -281,6 +317,15 @@ struct exploration_from_interferes_with_to_visitor :public boost::default_dfs_vi
                 lockers.erase(v);
                 vertex_coloring[reference_map->at(g[v].associate_port_name)] = boost::default_color_type::white_color;
                 PRINT_DEBUG("exploration_from_interferes_with_to_visitor: unlocking "+ g[v].associate_port_name);
+            }
+            if (g[v].name == OS_name)
+            {
+                for (auto v: OS_locked)
+                {
+                    vertex_coloring[v] = boost::default_color_type::white_color;
+                    OS_locked.erase(v);
+                }
+                OS_name = "";
             }
             boost::default_dfs_visitor::finish_vertex(v,g);
         }

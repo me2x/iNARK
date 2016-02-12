@@ -11,11 +11,6 @@ timing_internal_graph::timing_internal_graph(Source_Graph g){
   
     }
 
-    //da rifare. da risistemare i 4th lvl. non eliminare brutalmente ma collegarli alla "priorita" desiderata. conviene farlo qua? credo di si. 
-    //risistemare la parte dopo: non mi servono piu i 3 to 4 edges, basta lasciare ogni os collegato al suo so. mantenere intra layer, solo spostarli su priorità desiderata.
-    //per ogni edge, crea andata e ritorno nel bidirezionale. tranne che per gli intra layer e i link tra 4 e 5th livello. 3 to 4th lvl vanno creati dopo aver collassato
-    //il 4th lvl guardando le priorita delle porte. 4 to 5 vanno mappati subito dopo il collasso a causa di possibile presenza di componenti mappati su stesso nodo collassato presenti su piu board
-   
     PRINT_DEBUG("components map size is: "+boost::lexical_cast<std::string>(components_map.size()));
     
     edge_iter ei, ei_end;
@@ -31,8 +26,85 @@ timing_internal_graph::timing_internal_graph(Source_Graph g){
         PRINT_DEBUG("the target component is: "+g[old_graph_target].name+" and its port is: "+boost::lexical_cast<std::string>(g[*ei].to_port));
         //mancano 4 to 5: da moltiplicare.
         //all edges are in 1:1 between the physical graph to the internal representation, exept the edges from l4 to l5. 
+        //OS to processor have to be multiplied
+        //task to os has to be fixed. to port dovrebbe mappare allo scheduler slot. ed infatti funziona.
         //for that layer i have to build one edge for each new resource to the physical component
-        if (!(g[old_graph_source].layer != PHYSICAL && g[old_graph_target].layer == PHYSICAL)&& !(g[old_graph_source].layer == PHYSICAL && g[old_graph_target].layer != PHYSICAL))
+        //!(g[old_graph_source].layer != PHYSICAL && g[old_graph_target].layer == PHYSICAL)&& !(g[old_graph_source].layer == PHYSICAL && g[old_graph_target].layer != PHYSICAL)
+        
+        
+        //fai con uno switch su somma layers. caso base: edges 1:1 
+        //cases: 0 func to func, 1 func to task, 2 tast to task, 3 task to os, 4 os to os, 5 os to processor, 6 resource to resource, 7 resource to physical
+        switch(g[old_graph_source].layer+g[old_graph_target].layer)
+        {
+            case 5:
+            {
+                PRINT_DEBUG("edge creation: inside switch, case 5");
+                bool l4_is_source = g[old_graph_source].layer == RESOURCE;
+                if (components_map.count(g[l4_is_source?old_graph_target:old_graph_source].name) != 0)
+                {
+                    for (std::map<int,std::string>::iterator l3_to_l4_iter = components_map.at(g[l4_is_source?old_graph_target:old_graph_source].name).begin();l3_to_l4_iter != components_map.at(g[l4_is_source?old_graph_target:old_graph_source].name).end();++l3_to_l4_iter)
+                    {
+                        PRINT_DEBUG("edge creation: components map at: "+g[l4_is_source?old_graph_target:old_graph_source].name+ " size is: "+boost::lexical_cast<std::string>(components_map.at(g[l4_is_source?old_graph_target:old_graph_source].name).size()));
+                        new_source = get_node_reference(l4_is_source? g[old_graph_source].name+"$$1" : (*l3_to_l4_iter).second);
+                        if (l4_is_source)
+                        {
+                            PRINT_DEBUG("edge creation: old graph source name is: "+g[old_graph_source].name +"but the retrieved node is: "+ig[new_source].name);
+                            PRINT_DEBUG("the result of get node reference is: "+ boost::lexical_cast<std::string>(get_node_reference(g[old_graph_source].name)));
+                        }
+                        
+                        new_target = get_node_reference(l4_is_source? (*l3_to_l4_iter).second:g[old_graph_target].name+"$$1");
+                        
+                        PRINT_DEBUG("edge creation: source node is: "+ig[new_source].name+ "while old graph source is: "+g[old_graph_source].name+" and target is: "+ig[new_target].name+" while old graph target is: "+g[old_graph_target].name);
+                        boost::tie(e,b) = boost::add_edge(new_source,new_target,ig);
+                    }
+                }
+                else
+                {
+                    bool l4_is_source = g[old_graph_source].layer == RESOURCE;
+                    new_source = get_node_reference(g[old_graph_source].name+(l4_is_source?"$$1":""));
+                    new_target = get_node_reference(g[old_graph_target].name+(l4_is_source?"":"$$1"));
+                    boost::tie(e,b) = boost::add_edge(new_source,new_target,ig);
+                }
+                break;
+            }
+            case 7:
+            {
+                bool l4_is_source = g[old_graph_source].layer == RESOURCE;
+                for (std::map<int,std::string>::iterator l4_to_l5_iter = components_map.at(g[l4_is_source?old_graph_source:old_graph_target].name).begin();l4_to_l5_iter != components_map.at(g[l4_is_source?old_graph_source:old_graph_target].name).end();++l4_to_l5_iter)
+                {
+                    PRINT_DEBUG("components map at: "+g[l4_is_source?old_graph_source:old_graph_target].name+ " size is: "+boost::lexical_cast<std::string>(components_map.at(g[l4_is_source?old_graph_source:old_graph_target].name).size()));
+                    new_source = get_node_reference(l4_is_source? (*l4_to_l5_iter).second:g[old_graph_source].name );
+                    new_target = get_node_reference(l4_is_source? g[old_graph_target].name : (*l4_to_l5_iter).second);
+                    boost::tie(e,b) = boost::add_edge(new_source,new_target,ig);
+                }
+                break;
+            }
+            default: 
+            {
+                if (components_map.count(g[old_graph_source].name) != 0)
+                {
+                    new_source = get_node_reference(components_map.at(g[old_graph_source].name).at(g[*ei].from_port !=NO_PORT? g[*ei].from_port:1));
+                }
+                else
+                {
+                    new_source = get_node_reference(g[old_graph_source].name);
+                }
+                if (components_map.count(g[old_graph_target].name) != 0)
+                {
+                    new_target = get_node_reference(components_map.at(g[old_graph_target].name).at(g[*ei].to_port !=NO_PORT? g[*ei].to_port:1));
+                }
+                else
+                {
+                    new_target = get_node_reference(g[old_graph_target].name);
+                }
+                
+                boost::tie(e,b) = boost::add_edge(new_source,new_target,ig);
+                break;
+            }
+            
+        }
+#if 0        
+        if (!(g[old_graph_source].layer == RESOURCE && g[old_graph_target].layer == (PHYSICAL || CONTROLLER)) || !(g[old_graph_source].layer == (PHYSICAL || CONTROLLER) && g[old_graph_target].layer == RESOURCE))
         {
             if (components_map.count(g[old_graph_source].name) != 0)
             {
@@ -65,7 +137,7 @@ timing_internal_graph::timing_internal_graph(Source_Graph g){
                 boost::tie(e,b) = boost::add_edge(new_source,new_target,ig);
             }
         }
-        
+#endif     
 #if 0
         //fai con uno switch su somma layers. caso base: andata e ritorno, vale per 1
         //3: layer 2to3, priority?custom else caso base
