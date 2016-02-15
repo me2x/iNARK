@@ -361,6 +361,8 @@ timing_internal_graph::timing_internal_graph(Source_Graph g){
     // next: is_master, flag -> save, unset, continue
     // next: is_master, !flag -> continue
     // next: is_slave, !flag -> set
+    // un po' piu complessa: devo salvare su una mappa le master attraversate e fare context swith con le slaves, di modo che le master siano sbiancate on backtrack delle slaves. questo perche lo stesso componente
+    //puo essere attraversato in piu direzioni e se le master sono scurite si perdono informazioni.
     masters_task_setter_visitor::colormap master_setter_map = get(boost::vertex_color, ifg);
     
    
@@ -398,10 +400,15 @@ timing_vertex_t timing_internal_graph::get_node_reference(std::string str)
     if (ig[*vi].name == str)
       return *vi;
   }
-  return NULL;
+  return Timing_Graph::null_vertex();
 }
 bool timing_internal_graph::search_path(std::string from, std::string to, Layer l)
 {
+    //check from and to are valid names for the graph:
+    if (get_node_reference(from)== Timing_Graph::null_vertex())
+        throw std::runtime_error ("node "+from+" does not exist in the graph");
+    if (get_node_reference(to)== Timing_Graph::null_vertex())
+        throw std::runtime_error ("node "+to+" does not exist in the graph");
     PRINT_DEBUG("from is: "+from +"and get_node_reference(from) returns vertex: "+ig[get_node_reference(from)].name);
     PRINT_DEBUG("to is: "+to +"and get_node_reference(from) returns vertex: "+ig[get_node_reference(to)].name);
     boost::filtered_graph<Timing_Graph,true_edge_predicate,layer_filter_vertex_predicate_c> ifg (ig,true_edge_predicate(ig),layer_filter_vertex_predicate_c(ig,l));
@@ -410,7 +417,7 @@ bool timing_internal_graph::search_path(std::string from, std::string to, Layer 
     std::pair<boost::filtered_graph<Timing_Graph,true_edge_predicate,layer_filter_vertex_predicate_c>::vertex_iterator, boost::filtered_graph<Timing_Graph,true_edge_predicate,layer_filter_vertex_predicate_c>::vertex_iterator> ftvp;
     for (ftvp = vertices(ifg); ftvp.first != ftvp.second; ++ftvp.first)
         master_setter_map[*ftvp.first] = boost::default_color_type::white_color;
-    exploration_from_interferes_with_to_visitor master_setter_vis = exploration_from_interferes_with_to_visitor(get_node_reference(to), name_to_node_map);
+    exploration_from_interferes_with_to_visitor master_setter_vis = exploration_from_interferes_with_to_visitor(get_node_reference(to), name_to_node_map, l);
     master_setter_vis.vertex_coloring=master_setter_map;
     boost::depth_first_visit(ifg, get_node_reference(from),master_setter_vis, master_setter_map);
     

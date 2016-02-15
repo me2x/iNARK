@@ -207,14 +207,17 @@ struct masters_task_setter_visitor :public boost::default_dfs_visitor{
 struct exploration_from_interferes_with_to_visitor :public boost::default_dfs_visitor{
   timing_vertex_t to; 
   std::map<std::string,timing_vertex_t>* reference_map;
-  std::set<timing_vertex_t> lockers;
-  std::set<timing_vertex_t> OS_locked;
-  mutable bool flag;
-  std::string match_OS_name, OS_name = "";
-  exploration_from_interferes_with_to_visitor (timing_vertex_t init_to, std::map<std::string,timing_vertex_t>& references_map)
+  std:: map <timing_vertex_t, std::set<timing_vertex_t>> to_be_whited_on_callback;
+  std::map <timing_vertex_t, timing_vertex_t> slave_master;
+  timing_vertex_t curr_slave;
+  timing_vertex_t curr_OS = Timing_Graph::null_vertex();
+  std::vector<timing_vertex_t> slaves_stack;
+  Layer layer;
+  exploration_from_interferes_with_to_visitor (timing_vertex_t init_to, std::map<std::string,timing_vertex_t>& references_map, Layer l)
   {
       to = init_to;
       reference_map = &references_map;
+      layer = l;
   }
   using colormap = boost::property_map<Timing_Graph, boost::vertex_color_t>::type;
     colormap vertex_coloring;
@@ -222,110 +225,135 @@ struct exploration_from_interferes_with_to_visitor :public boost::default_dfs_vi
     template<typename Vertex, typename Graph>
         void discover_vertex(Vertex v, Graph const& g) {
             std::cout<<"exploration_from_interferes_with_to_visitor: calling discover_vertex "<< g[v].name <<std::endl;
-#ifdef DEBUG
-            std::string is_master_string =(g[v].is_master)?"true":"false";
-            std::string flag_string = flag?"true":"false";
-            PRINT_DEBUG("exploration_from_interferes_with_to_visitor: is master value is: "+is_master_string+" and flag is: "+flag_string);
-#endif
-            if(g[v].is_master && flag)
+            switch (g[v].layer)
             {
-                flag = false;
-                //nodo da ignorare. devo pero scurire nodo associato.
-                if(g[v].associate_port_name != "")
+                case CONTROLLER:
                 {
-                    vertex_coloring[reference_map->at(g[v].associate_port_name)] = boost::default_color_type::black_color; ///vero problema. 
-                    lockers.insert(v);
-                    PRINT_DEBUG("exploration_from_interferes_with_to_visitor: locking "+ g[v].associate_port_name);
+                    if (layer != CONTROLLER)
+                    {
+                        if (curr_OS == Timing_Graph::null_vertex()) //NO se sono gia dentro non blocca. devo spostarla sull edge.
+                        {
+                            std::set<timing_vertex_t> tmp;
+                            to_be_whited_on_callback.insert(std::make_pair(v,tmp));
+                            curr_OS = v;
+                        }
+                    }
+                    break;
                 }
+                case RESOURCE:
+                {
+                    if(g[v].is_master && slave_master.count(curr_slave) == 0)
+                    {
+                        //nodo da ignorare. devo pero scurire nodo associato.
+                        if(g[v].associate_port_name != "")
+                        {
+                            vertex_coloring[reference_map->at(g[v].associate_port_name)] = boost::default_color_type::black_color; 
+                            std::set<timing_vertex_t> tmp ;
+                            tmp.insert(reference_map->at(g[v].associate_port_name));
+                            to_be_whited_on_callback.insert(std::make_pair(v,tmp));
+                            PRINT_DEBUG("exploration_from_interferes_with_to_visitor: locking "+ g[v].associate_port_name);
+                        }
+                        slave_master.insert(std::make_pair<>(curr_slave,v));
+                        to_be_whited_on_callback.at(curr_slave).insert(v);
+                    }
+                    else if (!g[v].is_master)
+                    {
+                        //context switch:
+                        PRINT_DEBUG("exploration_from_interferes_with_to_visitor: context switch at node: "+g[v].name);
+                        slaves_stack.push_back(curr_slave);
+                        curr_slave = v;
+                        std::set<timing_vertex_t> tmp;
+                        if(g[v].associate_port_name != "") //è una cosa che non sono sicuro serva, dato che dovrebbe essere scurita la slave port associata dall'altro lato della linea
+                        {
+                            vertex_coloring[reference_map->at(g[v].associate_port_name)] = boost::default_color_type::black_color;
+                            tmp.insert(reference_map->at(g[v].associate_port_name));
+                        }                        
+                        to_be_whited_on_callback.insert(std::make_pair(curr_slave,tmp));
+                        
+                    }
+                    else if (g[v].is_master && slave_master.count(curr_slave) != 0)
+                    {
+                        PRINT_DEBUG("exploration_from_interferes_with_to_visitor: controllo master tasks cercando: "+g[to].name);
+                        if (g[v].master_tasks.count(g[to].name) != 0)
+                            throw std::runtime_error ("trovato in master task");
+                        to_be_whited_on_callback.at(curr_slave).insert(v); //sarebbe else xD
+                    }
+                    
+                    break;
+                }
+                case PHYSICAL:
+                {
+                    std::set<timing_vertex_t> tmp;
+                    to_be_whited_on_callback.insert(std::make_pair(v,tmp));
+                    break;
+                }
+                case TASK:
+                {
+                    if (v == to)
+                        throw std::runtime_error ("trovato stesso nodo");
+                    break;
+                }
+                case FUNCTION:
+                {
+        #ifdef DEBUG
+                    std::cout << "exploration_from_interferes_with_to_visitor: function node"<<std::endl;
                 
+        #endif
+                    break;
+                }
             }
-            else if (!g[v].is_master && !flag && g[v].layer == Layer::RESOURCE)
-            {
-                flag = true;
-            }
-            else if (g[v].layer == Layer::PHYSICAL)
-            {
-                flag=false;
-            }
-            else if (g[v].is_master && !flag)
-            {
-                PRINT_DEBUG("exploration_from_interferes_with_to_visitor: controllo master tasks cercando: "+g[to].name);
-                if (g[v].master_tasks.count(g[to].name) != 0)
-                    throw std::runtime_error ("trovato in master task");
-            }
-             else if (v == to)
-                throw std::runtime_error ("trovato stesso nodo");
-#ifdef DEBUG
-            else{
-            std::cout << "exploration_from_interferes_with_to_visitor: no alternative found in the if wall"<<std::endl;
-            }
-#endif
-           
             //else continue;
             boost::default_dfs_visitor::discover_vertex(v,g);
-        }
-    template<typename Vertex, typename Graph>
-        void start_vertex(Vertex v, Graph const& g) 
-        {
-            std::cout<<"exploration_from_interferes_with_to_visitor: calling start_vertex "<< g[v].name <<std::endl;
-            flag = true;
-            boost::default_dfs_visitor::start_vertex(v,g);
         }
         template<typename Edge, typename Graph>
         void examine_edge(Edge e, Graph const& g) 
         {
             std::cout<<"exploration_from_interferes_with_to_visitor: examine edge "<< g[boost::source<>(e,g)].name << "-" <<g[boost::target<>(e,g)].name <<std::endl;
-            if(g[boost::source<>(e,g)].layer == TASK && g[boost::target<>(e,g)].layer == CONTROLLER && OS_name == "")
+            if(g[boost::source<>(e,g)].layer == PHYSICAL && g[boost::target<>(e,g)].layer == RESOURCE)
             {
-                OS_name = g[boost::target<>(e,g)].name;
-                std::string delimiter = "$$";
-                match_OS_name= OS_name.substr(0, OS_name.find(delimiter));
-                PRINT_DEBUG("OS locking: match substr is: " +match_OS_name+" and original name is: "+OS_name);
+                if (g[boost::target<>(e,g)].master_tasks.count(g[to].name) != 0)
+                    throw std::runtime_error ("trovato in phys to resource edge");
+                
+                vertex_coloring[boost::target<>(e,g)] = boost::default_color_type::black_color;
+                to_be_whited_on_callback.at(boost::source<>(e,g)).insert(boost::target<>(e,g));
+                
             }
-            else if (OS_name != "")
+            else if (g[boost::target<>(e,g)].layer == CONTROLLER && curr_OS != Timing_Graph::null_vertex())
             {
-                std::string tmp = (g[boost::target<>(e,g)].name);
-                PRINT_DEBUG (tmp+" find "+match_OS_name);
-                if (tmp.find(match_OS_name)!= tmp.npos)
+                if (vertex_coloring[boost::target<>(e,g)] == boost::default_color_type::white_color)
                 {
-                    vertex_coloring[boost::target<>(e,g)] = boost::default_color_type::black_color;
-                    OS_locked.insert(boost::target<>(e,g));
-                    PRINT_DEBUG("OS locking: match found on node: " +g[boost::target<>(e,g)].name);
+                    vertex_coloring[boost::target<>(e,g)] =  boost::default_color_type::black_color;
+                    to_be_whited_on_callback.at(curr_OS).insert(boost::target<>(e,g));
                 }
-                else if (g[boost::target<>(e,g)].layer == TASK)
-                {
-                    if (boost::target<>(e,g) == to)
-                        throw std::runtime_error ("trovato stesso nodo esaminando edge");
-                    else 
-                    {
-                    vertex_coloring[boost::target<>(e,g)] = boost::default_color_type::black_color;
-                    PRINT_DEBUG("task locking: match found on node: " +g[boost::target<>(e,g)].name);
-                    }
-                }
+                
             }
             boost::default_dfs_visitor::examine_edge(e,g);
         }
     template<typename Vertex, typename Graph>
         void finish_vertex(Vertex v, Graph const& g) {
             std::cout<<"calling exploration_from_interferes_with_to_visitor finish vertex"<< g[v].name <<std::endl;
-            if (!g[v].is_master && flag)
+            if (to_be_whited_on_callback.count(v) != 0)
             {
-                flag = false;
-            }
-            if (lockers.count(v) != 0)
-            {
-                lockers.erase(v);
-                vertex_coloring[reference_map->at(g[v].associate_port_name)] = boost::default_color_type::white_color;
-                PRINT_DEBUG("exploration_from_interferes_with_to_visitor: unlocking "+ g[v].associate_port_name);
-            }
-            if (g[v].name == OS_name)
-            {
-                for (auto v: OS_locked)
+                PRINT_DEBUG("exploration_from_interferes_with_to_visitor: finish vertex found the node inside the to_be_whited_on_callback map " +g[v].name );
+                for (auto vtx: to_be_whited_on_callback.at(v))
                 {
-                    vertex_coloring[v] = boost::default_color_type::white_color;
-                    OS_locked.erase(v);
+                    vertex_coloring[vtx] = boost::default_color_type::white_color;
+                    PRINT_DEBUG("exploration_from_interferes_with_to_visitor: whited node " +g[vtx].name );
                 }
-                OS_name = "";
+                PRINT_DEBUG("exploration_from_interferes_with_to_visitor: size of the map before remove is: " +boost::lexical_cast<std::string>(to_be_whited_on_callback.size()));
+                to_be_whited_on_callback.erase(v);
+                PRINT_DEBUG("exploration_from_interferes_with_to_visitor: size of the map after remove is: " +boost::lexical_cast<std::string>(to_be_whited_on_callback.size()));
+            }
+            if (v == curr_slave)
+            {
+                PRINT_DEBUG("exploration_from_interferes_with_to_visitor: curr_slave found, stack size before is: " +boost::lexical_cast<std::string>(slaves_stack.size()));
+                slaves_stack.pop_back();
+                curr_slave = slaves_stack.back();
+                PRINT_DEBUG("exploration_from_interferes_with_to_visitor: curr_slave found, stack size after is: " +boost::lexical_cast<std::string>(slaves_stack.size()));
+            }
+            if (v == curr_OS)
+            {
+                curr_OS = Timing_Graph::null_vertex();
             }
             boost::default_dfs_visitor::finish_vertex(v,g);
         }
