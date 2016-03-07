@@ -255,7 +255,7 @@
             <port>
                <id>4</id>
                <isMaster>0</isMaster>
-	       <associatedPort>4</associatedPort>
+	       <associatedPort>5</associatedPort>
             </port>
 	    <port>
                <id>5</id>
