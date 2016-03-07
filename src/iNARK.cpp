@@ -126,10 +126,9 @@ int main (int argc, char *argv[])
 	break;
       }
       case 1:
-      {bool aaa;
+      {bool search_result_configuration_OK;
           std::cout << "graph exploration time is (ns): "<<measure<std::chrono::nanoseconds>::execution( [&]() {aaa = ig.search_path(from_component, to_component,l);})<<std::endl;
-	if (//ig.search_path(from_component, to_component,l))
-            aaa)
+	if (search_result_configuration_OK)
         return 0;
     else return 100;
 	break;
