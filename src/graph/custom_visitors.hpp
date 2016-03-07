@@ -96,7 +96,7 @@ struct masters_task_research_visitor :public boost::default_dfs_visitor{
 
     template<typename Vertex, typename Graph>
         void discover_vertex(Vertex v, Graph const& g) {
-            std::cout<<"calling discover_vertex"<< g[v].name <<std::endl;
+            PRINT_DEBUG("calling discover_vertex"<< g[v].name );
             if(g[v].layer == Layer::TASK)
                 discovered_tasks->push_back(g[v].name); //o qualcosa del genere
             //vertex_coloring[v] = boost::default_color_type::black_color;
@@ -146,7 +146,7 @@ struct masters_task_setter_visitor :public boost::default_dfs_visitor{
 
     template<typename Vertex, typename Graph>
         void discover_vertex(Vertex v, Graph const& g) {
-            std::cout<<"masters_task_setter_visitor: calling discover_vertex "<< g[v].name <<std::endl;
+            PRINT_DEBUG("masters_task_setter_visitor: calling discover_vertex "<< g[v].name );
             if(g[v].is_master && flag)
             {
                 flag = false;
@@ -178,13 +178,13 @@ struct masters_task_setter_visitor :public boost::default_dfs_visitor{
     template<typename Vertex, typename Graph>
         void start_vertex(Vertex v, Graph const& g) 
         {
-            std::cout<<"masters_task_setter_visitor: calling start_vertex "<< g[v].name <<std::endl;
+            PRINT_DEBUG("masters_task_setter_visitor: calling start_vertex "+ g[v].name );
             flag = true;
             boost::default_dfs_visitor::start_vertex(v,g);
         }
     template<typename Vertex, typename Graph>
         void finish_vertex(Vertex v, Graph const& g) {
-            std::cout<<"calling finish_vertex"<< g[v].name <<std::endl;
+            PRINT_DEBUG("calling finish_vertex"+ g[v].name);
             if (!g[v].is_master && flag)
             {
                 flag = false;
@@ -224,14 +224,14 @@ struct exploration_from_interferes_with_to_visitor :public boost::default_dfs_vi
 
     template<typename Vertex, typename Graph>
         void discover_vertex(Vertex v, Graph const& g) {
-            std::cout<<"exploration_from_interferes_with_to_visitor: calling discover_vertex "<< g[v].name <<std::endl;
+            PRINT_DEBUG("exploration_from_interferes_with_to_visitor: calling discover_vertex "<< g[v].name );
             switch (g[v].layer)
             {
                 case CONTROLLER:
                 {
                     if (layer != CONTROLLER)
                     {
-                        if (curr_OS == Timing_Graph::null_vertex()) //NO se sono gia dentro non blocca. devo spostarla sull edge.
+                        if (curr_OS == Timing_Graph::null_vertex()) //NO se sono gia dentro non blocca. devo spostarla sull edge. fatto. questo è il primo OS.
                         {
                             std::set<timing_vertex_t> tmp;
                             to_be_whited_on_callback.insert(std::make_pair(v,tmp));
@@ -308,7 +308,9 @@ struct exploration_from_interferes_with_to_visitor :public boost::default_dfs_vi
         template<typename Edge, typename Graph>
         void examine_edge(Edge e, Graph const& g) 
         {
+#ifdef DEBUG
             std::cout<<"exploration_from_interferes_with_to_visitor: examine edge "<< g[boost::source<>(e,g)].name << "-" <<g[boost::target<>(e,g)].name <<std::endl;
+#endif          
             if(g[boost::source<>(e,g)].layer == PHYSICAL && g[boost::target<>(e,g)].layer == RESOURCE)
             {
                 if (g[boost::target<>(e,g)].master_tasks.count(g[to].name) != 0)
@@ -331,7 +333,7 @@ struct exploration_from_interferes_with_to_visitor :public boost::default_dfs_vi
         }
     template<typename Vertex, typename Graph>
         void finish_vertex(Vertex v, Graph const& g) {
-            std::cout<<"calling exploration_from_interferes_with_to_visitor finish vertex"<< g[v].name <<std::endl;
+            PRINT_DEBUG("calling exploration_from_interferes_with_to_visitor finish vertex"<< g[v].name );
             if (to_be_whited_on_callback.count(v) != 0)
             {
                 PRINT_DEBUG("exploration_from_interferes_with_to_visitor: finish vertex found the node inside the to_be_whited_on_callback map " +g[v].name );
