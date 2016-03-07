@@ -36,6 +36,58 @@ timing_internal_graph::timing_internal_graph(Source_Graph g){
         //cases: 0 func to func, 1 func to task, 2 tast to task, 3 task to os, 4 os to os, 5 os to processor, 6 resource to resource, 7 resource to physical
         switch(g[old_graph_source].layer+g[old_graph_target].layer)
         {
+            case 4: //all to all. è un po' overkill ma non dovrebbe creare dipendenze supplementari. aggiunge un sacco di edges e non so se ciò possa rallentare esplorazione.
+            {
+                PRINT_DEBUG("edge creation: inside switch, case 4");
+                
+                if (components_map.count(g[old_graph_source].name) != 0)
+                {
+                    if (components_map.count(g[old_graph_target].name) != 0)
+                    {
+                        //doppio for
+                        for (std::map<int,std::string>::iterator many_to_one = components_map.at(g[old_graph_source].name).begin();many_to_one != components_map.at(g[old_graph_source].name).end();++many_to_one)
+                        {
+                            for (std::map<int,std::string>::iterator one_to_many_iter = components_map.at(g[old_graph_target].name).begin();one_to_many_iter != components_map.at(g[old_graph_target].name).end();++one_to_many_iter)
+                                {
+                                    new_source = get_node_reference((*many_to_one).second);
+                                    new_target = get_node_reference((*one_to_many_iter).second);
+                                    boost::tie(e,b) = boost::add_edge(new_source,new_target,ig);
+                                }
+                        }
+                                
+                    }
+                    else
+                    {
+                        //singolo for
+                        for (std::map<int,std::string>::iterator many_to_one = components_map.at(g[old_graph_source].name).begin();many_to_one != components_map.at(g[old_graph_source].name).end();++many_to_one)
+                        {
+                         new_target = get_node_reference(g[old_graph_target].name);
+                         new_source = get_node_reference((*many_to_one).second);
+                         boost::tie(e,b) = boost::add_edge(new_source,new_target,ig);
+                        }
+                    }
+                }
+                else
+                {
+                    if (components_map.count(g[old_graph_target].name) != 0)
+                    {
+                        //singolo for
+                        for (std::map<int,std::string>::iterator one_to_many_iter = components_map.at(g[old_graph_target].name).begin();one_to_many_iter != components_map.at(g[old_graph_target].name).end();++one_to_many_iter)
+                        {
+                         new_source = get_node_reference(g[old_graph_source].name);
+                         new_target = get_node_reference((*one_to_many_iter).second);
+                         boost::tie(e,b) = boost::add_edge(new_source,new_target,ig);
+                        }
+                    }
+                    else
+                    {
+                        //niente for
+                        boost::tie(e,b) = boost::add_edge(get_node_reference(g[old_graph_source].name),get_node_reference(g[old_graph_target].name),ig);
+                    }
+                    
+                }
+                break;
+            }
             case 5:
             {
                 PRINT_DEBUG("edge creation: inside switch, case 5");
@@ -83,7 +135,7 @@ timing_internal_graph::timing_internal_graph(Source_Graph g){
             {
                 if (components_map.count(g[old_graph_source].name) != 0)
                 {
-                    new_source = get_node_reference(components_map.at(g[old_graph_source].name).at(g[*ei].from_port !=NO_PORT? g[*ei].from_port:1));
+                    new_source = get_node_reference(components_map.at(g[old_graph_source].name).at(g[*ei].from_port !=NO_PORT? g[*ei].from_port:1)); //pos 1 se non specificato serve per prendere componenti unici che sono stati in qualche modo toccati nella funzione di explode.
                 }
                 else
                 {
@@ -419,9 +471,16 @@ bool timing_internal_graph::search_path(std::string from, std::string to, Layer 
         master_setter_map[*ftvp.first] = boost::default_color_type::white_color;
     exploration_from_interferes_with_to_visitor master_setter_vis = exploration_from_interferes_with_to_visitor(get_node_reference(to), name_to_node_map, l);
     master_setter_vis.vertex_coloring=master_setter_map;
-    boost::depth_first_visit(ifg, get_node_reference(from),master_setter_vis, master_setter_map);
     
     
+     try {
+      boost::depth_first_visit(ifg, get_node_reference(from),master_setter_vis, master_setter_map);
+    }
+    catch (std::runtime_error e)
+    {
+        //std::cout << e.what();
+        return false;
+    }
     
     
     
@@ -483,7 +542,7 @@ bool timing_internal_graph::search_path(std::string from, std::string to, Layer 
       }
     }
 #endif    
-return false;
+return true;
 }
 #if 0
 //posso usarla per entrambe le ricerche. reverse "decide" se grafo dritto (ovvero this node interferes with) oppure al contrario (this node is interfered by)
