@@ -60,7 +60,11 @@ int main (int argc, char *argv[])
     source_graph g = source_graph();
     if (input_graph_name != "not_defined")
     {
-    g.create_graph(input_graph_name);
+#ifdef TIME 
+        std::cout << "graph creation time is (ns): "<<measure<std::chrono::nanoseconds>::execution( [&]() { g.create_graph(input_graph_name);})<<std::endl;
+#else
+        g.create_graph(input_graph_name);
+#endif
     }
     else 
     {
@@ -122,9 +126,10 @@ int main (int argc, char *argv[])
 	break;
       }
       case 1:
-      {
-	if (ig.search_path(from_component, to_component,l))
-
+      {bool aaa;
+          std::cout << "graph exploration time is (ns): "<<measure<std::chrono::nanoseconds>::execution( [&]() {aaa = ig.search_path(from_component, to_component,l);})<<std::endl;
+	if (//ig.search_path(from_component, to_component,l))
+            aaa)
         return 0;
     else return 100;
 	break;
