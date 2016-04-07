@@ -1,9 +1,15 @@
-cmake_minimum_required (VERSION 2.8)
+cmake_minimum_required (VERSION 3.0.2)
 project (iNARK)
-
+find_package(Qt4 4.4.3 REQUIRED)
 
 option(DEBUG "debug option" OFF)
+include_directories(${QT_INCLUDES} ${CMAKE_CURRENT_BINARY_DIR})
 
+
+
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
 #set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 
 # Compiler Options

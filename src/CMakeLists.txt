@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 2.8)
+cmake_minimum_required (VERSION 3.0.2)
 project (iNARK)
 
 # The version number.
@@ -29,8 +29,10 @@ configure_file (
 include_directories("${PROJECT_BINARY_DIR}")
 include_directories ("${PROJECT_SOURCE_DIR}")
 add_subdirectory (graph)
+add_subdirectory(graphical)
 
 add_executable(iNARK iNARK.cpp)
 
 
-target_link_libraries( iNARK graph)
+target_link_libraries( iNARK graph graphical)
+

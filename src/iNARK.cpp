@@ -7,8 +7,11 @@
 
 #include "graph/graph.hpp"
 #include "graph/timing_internal_graph.hpp"
+
+#include <QtGui/QApplication>
+#include "graphical/mainwindow.h"
 int main (int argc, char *argv[])
-{
+{/*
   try
   {
     std::string input_graph_name = "not_defined";
@@ -182,6 +185,9 @@ int main (int argc, char *argv[])
 #endif      
     return EXIT_FAILURE;
   }
-
-
+*/
+    QApplication app(argc, argv);
+    MainWindow provagui;
+    provagui.show();
+    return app.exec();
 }
