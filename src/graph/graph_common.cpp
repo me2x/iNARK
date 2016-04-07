@@ -284,9 +284,9 @@ void Fourth_Level_Vertex::explode_component_timing(Timing_Graph& graph, std::map
                         PRINT_DEBUG("4th level priority: inner loop, same priority looping inner_iter ");
                         if((*vertex_iter2)!=(*vertex_iter))
                         {
-                            PRINT_DEBUG("4th level priority: inner loop, vertexes are differents, adding edge");
+                            PRINT_DEBUG("4th level priority: inner loop, vertexes are differents and are: "+graph[*vertex_iter2].name+" and " +graph[*vertex_iter].name+ " , adding edge");
                             timing_edge_t e; bool b;
-                            boost::tie(e,b) = boost::add_edge(tmp_vtx,*vertex_iter,graph); //monodirectional, the opposite direction will be done when vertex iter and vertex iter 2 will have opposite values.
+                            boost::tie(e,b) = boost::add_edge(*vertex_iter2,*vertex_iter,graph); //monodirectional, the opposite direction will be done when vertex iter and vertex iter 2 will have opposite values.
                         }
                         else 
                         {

@@ -104,7 +104,7 @@ timing_internal_graph::timing_internal_graph(Source_Graph g){
                             PRINT_DEBUG("the result of get node reference is: "+ boost::lexical_cast<std::string>(get_node_reference(g[old_graph_source].name)));
                         }
                         
-                        new_target = get_node_reference(l4_is_source? (*l3_to_l4_iter).second:g[old_graph_target].name+"$$1");
+                        new_target = get_node_reference(l4_is_source? (*l3_to_l4_iter).second:g[old_graph_target].name+"$$1"); //the $$1 is added only to processors.
                         
                         PRINT_DEBUG("edge creation: source node is: "+ig[new_source].name+ "while old graph source is: "+g[old_graph_source].name+" and target is: "+ig[new_target].name+" while old graph target is: "+g[old_graph_target].name);
                         boost::tie(e,b) = boost::add_edge(new_source,new_target,ig);

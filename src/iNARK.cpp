@@ -61,7 +61,7 @@ int main (int argc, char *argv[])
     if (input_graph_name != "not_defined")
     {
 #ifdef TIME 
-        std::cout << "graph creation time is (ns): "<<measure<std::chrono::nanoseconds>::execution( [&]() { g.create_graph(input_graph_name);})<<std::endl;
+      std::cout << "graph creation time is (ns): "<<measure<std::chrono::nanoseconds>::execution( [&]() { g.create_graph(input_graph_name);})<<std::endl;
 #else
         g.create_graph(input_graph_name);
 #endif
@@ -111,9 +111,14 @@ int main (int argc, char *argv[])
 	break;
       }
     }
-    
-
     timing_internal_graph ig = timing_internal_graph(g.local_graph);
+//#ifdef TIME 
+  //    std::cout << "graph creation time is (ns): "<<measure<std::chrono::nanoseconds>::execution( [&]() { ig = timing_internal_graph(g.local_graph);})<<std::endl;
+//#else
+ //   ig = timing_internal_graph(g.local_graph);
+//#endif
+
+    
     switch (search_type)
     {
         case 0: 
@@ -126,9 +131,16 @@ int main (int argc, char *argv[])
 	break;
       }
       case 1:
-      {bool search_result_configuration_OK;
-          std::cout << "graph exploration time is (ns): "<<measure<std::chrono::nanoseconds>::execution( [&]() {aaa = ig.search_path(from_component, to_component,l);})<<std::endl;
-	if (search_result_configuration_OK)
+      {
+          
+          bool search_result_configuration_OK;
+          
+#ifdef TIME          
+          std::cout << "graph exploration time is (ns): "<<measure<std::chrono::nanoseconds>::execution( [&]() {search_result_configuration_OK = ig.search_path(from_component, to_component,l);})<<std::endl;
+#else	
+        search_result_configuration_OK = ig.search_path(from_component, to_component,l);
+#endif
+        if (search_result_configuration_OK)
         return 0;
     else return 100;
 	break;

@@ -273,7 +273,8 @@ struct exploration_from_interferes_with_to_visitor :public boost::default_dfs_vi
                     }
                     else if (g[v].is_master && slave_master.count(curr_slave) != 0)
                     {
-                        PRINT_DEBUG("exploration_from_interferes_with_to_visitor: controllo master tasks cercando: "+g[to].name);
+                        PRINT_DEBUG("exploration_from_interferes_with_to_visitor: controllo master tasks di "+ g[v].name +"passando dallo slave: "+ g[curr_slave].name + "cercando: "+g[to].name);
+                        
                         if (g[v].master_tasks.count(g[to].name) != 0)
                             throw std::runtime_error ("trovato in master task");
                         to_be_whited_on_callback.at(curr_slave).insert(v); //sarebbe else xD
