@@ -2,3 +2,4 @@
 build/
 iNARK.kdev4
 *swp
+.test/
