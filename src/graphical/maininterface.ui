@@ -221,23 +221,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QComboBox" name="chose_layer">
-           <item>
-            <property name="text">
-             <string>Control Layer</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Resources Layer</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Physical Layer</string>
-            </property>
-           </item>
-          </widget>
+          <widget class="QComboBox" name="chose_layer"/>
          </item>
          <item>
           <widget class="QLabel" name="label_15">
@@ -253,13 +237,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QComboBox" name="chose_type">
-           <item>
-            <property name="text">
-             <string>Timing</string>
-            </property>
-           </item>
-          </widget>
+          <widget class="QComboBox" name="chose_type"/>
          </item>
          <item>
           <spacer name="verticalSpacer_2">

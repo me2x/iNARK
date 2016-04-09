@@ -43,9 +43,31 @@ enum Component_Type{
   NOT_SPECIFIED,
   TYPE_ERROR
 };
+
+enum Search_Layers{
+    S_CONTROLLER,
+    S_RESOURCE,
+    S_PHYSICAL,
+    SEARCH_LAYER_END
+};
+enum Search_Types{
+    TIMING,
+    PROVA,
+    SEARCH_TYPE_END
+};
 class Custom_Vertex;
 class Custom_Edge;
 
+namespace commons{
+Layer int_to_Layer(int i);
+Priority int_to_Priority(int i);
+std::string Layer_to_String(Layer l);
+Component_Type int_To_Type(int i);
+Component_Priority_Category int_To_Priority_Handler(int i);
+std::string get_search_layer_names(Search_Layers l);
+std::string get_search_type_name(Search_Types t);
+    
+}
 //timing node cannot be forward declared because of graph library: incomplete base
 class Timing_Node{// subclass removed: when doing the search the graph is passed by copy and the runtime properties like subclasses are lost.
 public:

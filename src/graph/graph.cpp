@@ -10,107 +10,9 @@
 
 
 
-Layer int_to_Layer(int i){
-    switch(i)
-    {
-    case 1:
-        return FUNCTION;
-        break;
-    case 2:
-        return TASK;
-        break;
-    case 3:
-        return CONTROLLER;
-        break;
-    case 4:
-        return RESOURCE;
-        break;
-    case 5:
-        return PHYSICAL;
-        break;
-    default:
-        return LAYER_ERROR;
-        break;
-    }
-}
-Priority int_to_Priority(int i){
-    switch(i)
-    {
-    case 1:
-        return NO_PRIORITY;
-        break;
-    case 2:
-        return MISSION_CRITICAL;
-        break;
-    case 3:
-        return SAFETY_CRITICAL;
-        break;
-    default:
-        return PRIORITY_ENUM_SIZE;
-        break;
-    }
-}
-std::string Layer_to_String(Layer l){
-    switch(l)
-    {
-    case FUNCTION:
-        return "function";
-        break;
-    case TASK:
-        return "task" ;
-        break;
-    case CONTROLLER:
-        return "controller";
-        break;
-    case RESOURCE:
-        return "resource";
-        break;
-    case PHYSICAL:
-        return "physical";
-        break;
-    default:
-        return "error";
-        break;
-    }
-}
-Component_Type int_To_Type(int i){
-    switch(i)
-    {
-    case 1:
-        return PROCESSOR;break;
 
-    case 2:
-        return BUS;break;
 
-    case 3:
-        return BRIDGE;break;
-
-    case 4:
-        return PERIPHERAL;break;
-        
-    case 5:
-        return MEMORY;break;
-
-    default:
-        return TYPE_ERROR;break;
-    }
-}
-Component_Priority_Category int_To_Priority_Handler(int i){
-switch(i)
-    {
-    case 1:
-        return ROUND_ROBIN;break;
-
-    case 2:
-        return PRIORITY;break;
-
-    case 3:
-        return TDMA;break;
-
-    default:
-        return PRIORITY_CATEGORY_ERROR;break;
-    }
-}
+using namespace commons;
 
 bool source_graph::create_graph(std::string xml)
 {
@@ -121,28 +23,19 @@ bool source_graph::create_graph(std::string xml)
     // Source_Graph g;
         BOOST_FOREACH(ptree::value_type &v,pt.get_child("root.components"))
         {
-            vertex_t vt = boost::add_vertex(local_graph);
+            
             switch (int_to_Layer((v.second.get_child("layer")).get_value<int>()))
             {
                 case FUNCTION:
                 {
-                    First_Level_Vertex vtx = First_Level_Vertex();
-                    vtx.name = (v.second.get_child("name")).get_value<std::string>();
-                    vtx.layer = FUNCTION;
-                    local_graph[vt] = vtx;
-                    local_graph[vt].add_function(vtx);
-                    
-                    //local_graph[vt].layer = FUNCTION;
+                    std::String name = (v.second.get_child("name")).get_value<std::string>();
+                    add_L1_node(name);  
                     break;
                 }
                 case TASK:
                 {
-                    Second_Level_Vertex vtx = Second_Level_Vertex();
-                    vtx.layer = TASK;
-                    vtx.name = (v.second.get_child("name")).get_value<std::string>();
-                    local_graph[vt] = vtx;
-                    local_graph[vt].add_function(vtx);
-                    
+                    std::String name = (v.second.get_child("name")).get_value<std::string>();
+                    add_L2_node(name); 
                     break;
                 }    
                 case CONTROLLER:
@@ -221,12 +114,8 @@ bool source_graph::create_graph(std::string xml)
                 }
                 case PHYSICAL:
                 {
-                    Fifth_Level_Vertex vtx = Fifth_Level_Vertex();
-                    vtx.layer = PHYSICAL;
-                    vtx.name = (v.second.get_child("name")).get_value<std::string>();
-                    local_graph[vt] = vtx;
-                    local_graph[vt].add_function(vtx);
-                    
+                    std::String name = (v.second.get_child("name")).get_value<std::string>();
+                    add_L5_node(name); 
                     break;
                 }
                 
@@ -236,9 +125,9 @@ bool source_graph::create_graph(std::string xml)
             
             
             
-           PRINT_DEBUG(local_graph[vt].layer);
+           
              
-            vertex_map.insert(std::make_pair(local_graph[vt].name, vt));
+           
         }//m_modules.insert(v.second.data());
         BOOST_FOREACH(ptree::value_type &v,pt.get_child("root.edges"))
         {
@@ -288,3 +177,60 @@ return false;
 }
 #endif
 
+void source_graph::add_L1_node(std::string name)
+{
+    vertex_t vt = boost::add_vertex(*local_graph);
+    First_Level_Vertex vtx = First_Level_Vertex();
+    vtx.name = name;
+    vtx.layer = FUNCTION;
+    (*local_graph)[vt] = vtx;
+    (*local_graph)[vt].add_function(vtx);  
+     vertex_map.insert(std::make_pair(name, vt));
+}
+void source_graph::add_L2_node(std::string name)
+{
+    vertex_t vt = boost::add_vertex(*local_graph);
+    Second_Level_Vertex vtx = Second_Level_Vertex();
+    vtx.layer = TASK;
+    vtx.name = name;
+    (*local_graph)[vt] = vtx;
+    (*local_graph)[vt].add_function(vtx);  
+    vertex_map.insert(std::make_pair(name, vt));
+}
+void source_graph::add_L3_node(std::string name, std::shared_ptr< std::map< int, Scheduler_Slot > > scheduler, Component_Priority_Category handling)
+{
+    vertex_t vt = boost::add_vertex(*local_graph);
+    
+    //code here
+    
+     vertex_map.insert(std::make_pair(name, vt));
+}
+void source_graph::add_L4_node(std::string name, std::shared_ptr< std::map< int, Port > > ports, Component_Type type, Component_Priority_Category handling)
+{
+    vertex_t vt = boost::add_vertex(*local_graph);
+    
+    //code here
+    
+     vertex_map.insert(std::make_pair(name, vt));
+}
+void source_graph::add_L5_node(std::string name)
+{
+    vertex_t vt = boost::add_vertex(*local_graph);
+    Fifth_Level_Vertex vtx = Fifth_Level_Vertex();
+    vtx.layer = PHYSICAL;
+    vtx.name = name;
+    (*local_graph)[vt] = vtx;
+    (*local_graph)[vt].add_function(vtx);  
+    vertex_map.insert(std::make_pair(name, vt));
+}
+bool source_graph::create_graph_from_xml(std::string xml_location)
+{
+
+}
+//usare weak pointers? nel senso che l'idea è di avere sola lettura. weak non puo risalire xo. 
+//quindi dovrebbe ricreare il shared_ptr a valle...nn ha molto senso...
+std::shared_ptr< Source_Graph > source_graph::get_source_graph_ref()
+{
+    std::shared_ptr< Source_Graph > return_value = local_graph;
+    return return_value;
+}
