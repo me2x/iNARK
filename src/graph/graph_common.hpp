@@ -5,6 +5,7 @@
 #include <boost/graph/undirected_dfs.hpp>
 #include <boost/graph/graph_utility.hpp>
 #include <functional>
+#include <memory>
 #ifndef GRAPH_COMMON_H
 #define GRAPH_COMMON_H
 
@@ -81,7 +82,7 @@ public:
 
 
 
-typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS,Custom_Vertex,Custom_Edge>Source_Graph;
+typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS,Custom_Vertex,Custom_Edge >Source_Graph;
 typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS,boost::property<boost::vertex_color_t, boost::default_color_type, Timing_Node> > Timing_Graph; //edge custom non serve piu.
 
 /*** 
@@ -141,14 +142,14 @@ public:
 
 class Third_Level_Vertex : public Custom_Vertex{
 public:    
-    std::map <int, Scheduler_Slot> priority_slots; //serve ???? uno slot per ogni task, e all interno dello slot è segnato il livello di priorita. boh...
+    std::shared_ptr< std::map <int, Scheduler_Slot> > priority_slots; //serve ???? uno slot per ogni task, e all interno dello slot è segnato il livello di priorita. boh...
     Component_Priority_Category OS_scheduler_type;
     void explode_component_timing(Timing_Graph& graph, std::map<std::string, std::map< int, std::string> >& components_map ) const ;
 };
 
 class Fourth_Level_Vertex : public Custom_Vertex{
 public: 
-    std::map <int, Port> ports_map;
+    std::shared_ptr< std::map <int, Port> > ports_map;
     Component_Priority_Category component_priority_type;
     Component_Type component_type;
     void explode_component_timing(Timing_Graph& graph, std::map<std::string, std::map< int, std::string> >& components_map ) const ;

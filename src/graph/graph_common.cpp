@@ -256,7 +256,7 @@ void Third_Level_Vertex::explode_component_timing(Timing_Graph& graph, std::map<
         case TDMA:
         {
             std::map< int, std::string > tmp;    //port, new vtx name, inner map of the components_map parameter
-            for (std::map<int, Scheduler_Slot>::const_iterator iter = this->priority_slots.begin();iter != this->priority_slots.end() ;++iter)
+            for (std::map<int, Scheduler_Slot>::const_iterator iter = this->priority_slots->begin();iter != this->priority_slots->end() ;++iter)
             {
                 timing_vertex_t vt =  boost::add_vertex(graph);
                 graph[vt].layer=this->layer;
@@ -290,7 +290,7 @@ void Fourth_Level_Vertex::explode_component_timing(Timing_Graph& graph, std::map
         {
             std::map< int, std::string > tmp;    //port, new vtx name, inner map of the components_map parameter
             std::vector<timing_vertex_t> masters,slaves;
-            for (std::map<int, Port>::const_iterator iter = this->ports_map.begin();iter != this->ports_map.end() ;++iter)
+            for (std::map<int, Port>::const_iterator iter = this->ports_map->begin();iter != this->ports_map->end() ;++iter)
             {
                 
                 if ((*iter).second.is_master)
@@ -349,8 +349,8 @@ void Fourth_Level_Vertex::explode_component_timing(Timing_Graph& graph, std::map
             std::map< int, std::string > tmp;    //port, new vtx name, inner map of the components_map parameter
             std::map<int,std::vector< timing_vertex_t> > priority_map; //int is priority, will contain all vertex of that priority
             std::vector<timing_vertex_t> slaves;
-            PRINT_DEBUG("4th level priority: portsmap size is: "+boost::lexical_cast<std::string>(this->ports_map.size()));
-            for (std::map<int, Port>::const_iterator iter = this->ports_map.begin();iter != this->ports_map.end() ;++iter)
+            PRINT_DEBUG("4th level priority: portsmap size is: "+boost::lexical_cast<std::string>(this->ports_map->size()));
+            for (std::map<int, Port>::const_iterator iter = this->ports_map->begin();iter != this->ports_map->end() ;++iter)
             {
                 PRINT_DEBUG("4th level priority: iterating on port: "+boost::lexical_cast<std::string>((*iter).first));
                 if ((*iter).second.is_master)
@@ -444,7 +444,7 @@ void Fourth_Level_Vertex::explode_component_timing(Timing_Graph& graph, std::map
         {
             std::map< int, std::string > tmp;    //port, new vtx name, inner map of the components_map parameter
             std::vector<timing_vertex_t> masters,slaves;
-            for (std::map<int, Port>::const_iterator iter = this->ports_map.begin();iter != this->ports_map.end() ;++iter)
+            for (std::map<int, Port>::const_iterator iter = this->ports_map->begin();iter != this->ports_map->end() ;++iter)
             {
                 
                 if ((*iter).second.is_master)

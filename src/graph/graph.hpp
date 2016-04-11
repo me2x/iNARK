@@ -10,7 +10,7 @@ class extern_visitor;
 
 class source_graph {
 public:
-    source_graph() { local_graph.reset(new Source_Graph);}
+    source_graph() { local_graph.reset(new Source_Graph());}
 
     //bool search_component_dependences(std::string from, std::string to);
     bool create_graph(std::string xml_location);

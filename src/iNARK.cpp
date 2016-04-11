@@ -10,8 +10,10 @@
 
 #include <QtGui/QApplication>
 #include "graphical/mainwindow.h"
+
+#include <memory>
 int main (int argc, char *argv[])
-{/*
+{
   try
   {
     std::string input_graph_name = "not_defined";
@@ -114,7 +116,14 @@ int main (int argc, char *argv[])
 	break;
       }
     }
-    timing_internal_graph ig = timing_internal_graph(g.local_graph);
+    std::cout<<"pre ig creation"<<std::endl;
+    timing_internal_graph ig = timing_internal_graph();
+    std::cout<<"pre ig build"<<std::endl;
+    std::shared_ptr<Source_Graph> tmp = g.get_source_graph_ref();
+    std::cout<<"pre ig build2"<<std::endl;
+    std::cout<<"pre ig build2"<<tmp.use_count() <<std::endl;
+    ig.build_graph(g.get_source_graph_ref());
+    std::cout<<"post ig build"<<std::endl;
 //#ifdef TIME 
   //    std::cout << "graph creation time is (ns): "<<measure<std::chrono::nanoseconds>::execution( [&]() { ig = timing_internal_graph(g.local_graph);})<<std::endl;
 //#else
@@ -185,7 +194,7 @@ int main (int argc, char *argv[])
 #endif      
     return EXIT_FAILURE;
   }
-*/
+
     QApplication app(argc, argv);
     MainWindow provagui;
     provagui.show();
