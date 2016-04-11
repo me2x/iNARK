@@ -174,14 +174,12 @@ return false;
 void source_graph::add_L1_node(std::string name)
 {
     vertex_t vt = boost::add_vertex(*local_graph);
-    //First_Level_Vertex vtx = First_Level_Vertex();
-    
+    // it has to be done this way. changing to (*local_graph)[vt] = First_Level_Vertex(); and working with the local_graph[vt] is not a viable option. returns a bad function call.
     First_Level_Vertex vtx = First_Level_Vertex();
     vtx.layer = FUNCTION;
     vtx.name = name;
     (*local_graph)[vt] = vtx;
-    (*local_graph)[vt].add_function(vtx);  //da controllare. non sono sicuro sia fattibile
-    //piu che altro l'assegnamento delle variabili non presenti in Custom_Vertex ma solo nei figli.
+    (*local_graph)[vt].add_function(vtx);  
     vertex_map.insert(std::make_pair(name, vt));
 }
 void source_graph::add_L2_node(std::string name)

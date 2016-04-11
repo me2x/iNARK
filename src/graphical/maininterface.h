@@ -19,9 +19,9 @@ private:
 public:
     explicit MainInterface(QWidget* parent = 0);
     ~MainInterface();
-  /*  
+    
 public slots:
-    //COMPONENT CREATION
+/*    //COMPONENT CREATION NB, se sono solo this, this, possono essere trasformati in private slots
     //called on button click, set up popop
     void Layer_1_press_event();
     void Layer_2_press_event();
@@ -73,6 +73,12 @@ public slots:
     //launch the actual search.
     void start_search();
     */
+    //LOAD and STORE
+    void load_file();
+    void save_file();
+    
+private:
+    source_graph sg;
 };
 
 #endif // MAININTERFACE_H
