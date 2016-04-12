@@ -71,9 +71,9 @@ int main (int argc, char *argv[])
         if (input_graph_name != "not_defined")
         {
     #ifdef TIME 
-        std::cout << "graph creation time is (ns): "<<measure<std::chrono::nanoseconds>::execution( [&]() { g.create_graph(input_graph_name);})<<std::endl;
+        std::cout << "graph creation time is (ns): "<<measure<std::chrono::nanoseconds>::execution( [&]() { g.create_graph_from_xml(input_graph_name);})<<std::endl;
     #else
-            g.create_graph(input_graph_name);
+            g.create_graph_from_xml(input_graph_name);
     #endif
         }
         else 

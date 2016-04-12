@@ -14,7 +14,7 @@
 
 using namespace commons;
 
-bool source_graph::create_graph(std::string xml)
+bool source_graph::create_graph_from_xml(std::string xml)
 {
     using boost::property_tree::ptree;
     ptree pt;
@@ -233,7 +233,7 @@ void source_graph::add_L5_node(std::string name)
     (*local_graph)[vt].add_function(vtx); //potrebbe non andare. 
     vertex_map.insert(std::make_pair(name, vt));
 }
-bool source_graph::create_graph_from_xml(std::string xml_location)
+bool source_graph::create_graph(std::string xml_location)
 {
 
 }

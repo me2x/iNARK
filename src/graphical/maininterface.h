@@ -4,6 +4,10 @@
 #include <qt4/QtGui/qwidget.h>
 #include <memory>
 #include <graph/graph.hpp>
+#include "graphic_edge.h"
+#include "graphic_vertex.h"
+#include <QGraphicsScene>
+#include <QTimer>
 namespace Ui
 {
 class MainInterface;
@@ -21,7 +25,7 @@ public:
     ~MainInterface();
     
 public slots:
-/*    //COMPONENT CREATION NB, se sono solo this, this, possono essere trasformati in private slots
+    //COMPONENT CREATION NB, se sono solo this, this, possono essere trasformati in private slots
     //called on button click, set up popop
     void Layer_1_press_event();
     void Layer_2_press_event();
@@ -65,20 +69,36 @@ public slots:
     
     //SEARCH FUNCTIONS
     //search data TO BE FILLED on creation. use enums.
-    void get_search_level();
-    void get_search_type();
-    //textual. search the node and if exists accept, else refuse
-    void get_starting_node();
-    void get_target_node();
+    //void get_search_level();
+    //void get_search_type();
+    //textual. search the node and if exists accept, else refuse. they are not signals, has to be done in the start search
+    //void get_starting_node();
+    //void get_target_node();
     //launch the actual search.
     void start_search();
-    */
+    
     //LOAD and STORE
     void load_file();
     void save_file();
     
 private:
+    //in order to eliminate both the item and the graphical item the scene has to be updated before the reset of the shared_ptr
+    void delete_vertex(std::shared_ptr<Graphic_Vertex>& to_be_deleted);
+    void delete_edge(std::shared_ptr<Graphic_Edge>& to_be_deleted);
     source_graph sg;
+    std::map<std::shared_ptr<Graphic_Vertex>,vertex_t> vertices;
+    //following map is passed to all edges, that will update it whenever a move action is performed. the map has to be unique and is initialized here in the main window.
+    //even if ownership is shared edge removal should only be performed in main. 
+    //the edges should only perform updates: ie one removal and one insert, since the key (aka the line item) is changed
+    std::shared_ptr<std::map<QGraphicsLineItem*,std::shared_ptr<Graphic_Edge> > >arrows; //old style ptr because Qt uses those, not sure of using shared_ptr as value.
+    QGraphicsScene* scene;
+    QTimer* timer;
+    std::shared_ptr<Graphic_Vertex> starting_object,arrival_object;
+    std::shared_ptr<Graphic_Edge> selected_edge;
+    //popup vari ed eventuali :S
+    
+    
+    
 };
 
 #endif // MAININTERFACE_H
