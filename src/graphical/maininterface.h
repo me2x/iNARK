@@ -86,19 +86,24 @@ private:
     void delete_vertex(std::shared_ptr<Graphic_Vertex>& to_be_deleted);
     void delete_edge(std::shared_ptr<Graphic_Edge>& to_be_deleted);
     source_graph sg;
+    //the two following maps will contain the reference between graphical and logical view. if one of the two views is resetted, the other has to be resetted too.
     std::map<std::shared_ptr<Graphic_Vertex>,vertex_t> vertices;
+    std::map<std::shared_ptr<Graphic_Edge>,edge_t> edges;
     //following map is passed to all edges, that will update it whenever a move action is performed. the map has to be unique and is initialized here in the main window.
     //even if ownership is shared edge removal should only be performed in main. 
     //the edges should only perform updates: ie one removal and one insert, since the key (aka the line item) is changed
-    std::shared_ptr<std::map<QGraphicsLineItem*,std::shared_ptr<Graphic_Edge> > >arrows; //old style ptr because Qt uses those, not sure of using shared_ptr as value.
+    std::shared_ptr<std::map<QGraphicsLineItem*,std::weak_ptr<Graphic_Edge> > >arrows; //old style ptr because Qt uses those, not sure of using shared_ptr as value.
+    //graphics item once assigned then forgotten
     QGraphicsScene* scene;
     QTimer* timer;
+    //graphics item whose pointers have to be stored in maps and deleted if removed from maps
     std::shared_ptr<Graphic_Vertex> starting_object,arrival_object;
     std::shared_ptr<Graphic_Edge> selected_edge;
     //popup vari ed eventuali :S
     
     
-    
+    //utilities
+    bool is_drawing;
 };
 
 #endif // MAININTERFACE_H

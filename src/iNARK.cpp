@@ -153,8 +153,15 @@ int main (int argc, char *argv[])
             search_result_configuration_OK = ig.search_path(from_component, to_component,l);
     #endif
             if (search_result_configuration_OK)
-            return 0;
-        else return 100;
+            {
+                std::cout <<"no path found"<<std::endl;    
+                return 0;
+            }
+            else
+            {
+                std::cout<<"path found" <<std::endl;
+                return 100;
+            }
             break;
         }
         case 2:

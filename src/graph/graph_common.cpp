@@ -202,7 +202,7 @@ std::string commons::get_search_type_name(Search_Types t)
 
 */
 
-void First_Level_Vertex::explode_component_timing(Timing_Graph& graph, std::map<std::string, std::map< int, std::string> >& components_map ) const {
+void First_Level_Vertex::explode_component_timing(Timing_Graph& graph, std::map<std::string, std::map< int, std::string> >& components_map )  {
     PRINT_DEBUG("timing first level vertex building");
     timing_vertex_t vt = boost::add_vertex(graph);
     PRINT_DEBUG("vertex added");
@@ -213,7 +213,7 @@ void First_Level_Vertex::explode_component_timing(Timing_Graph& graph, std::map<
     
 }
 
-void Second_Level_Vertex::explode_component_timing(Timing_Graph& graph, std::map<std::string, std::map< int, std::string> >& components_map ) const {
+void Second_Level_Vertex::explode_component_timing(Timing_Graph& graph, std::map<std::string, std::map< int, std::string> >& components_map )  {
     timing_vertex_t vt = boost::add_vertex(graph);
     
     graph[vt].layer = this->layer;
@@ -221,7 +221,7 @@ void Second_Level_Vertex::explode_component_timing(Timing_Graph& graph, std::map
     graph[vt].name = this->name;
 }
 
-void Third_Level_Vertex::explode_component_timing(Timing_Graph& graph, std::map< std::string, std::map< int, std::string > >& components_map) const
+void Third_Level_Vertex::explode_component_timing(Timing_Graph& graph, std::map< std::string, std::map< int, std::string > >& components_map) 
 {
     switch (this->OS_scheduler_type)
     {
@@ -279,7 +279,7 @@ void Third_Level_Vertex::explode_component_timing(Timing_Graph& graph, std::map<
 
 }
 
-void Fourth_Level_Vertex::explode_component_timing(Timing_Graph& graph, std::map< std::string, std::map< int, std::string > >& components_map) const
+void Fourth_Level_Vertex::explode_component_timing(Timing_Graph& graph, std::map< std::string, std::map< int, std::string > >& components_map) 
 {
     //questa è grama.
     //switch su tipo, all interno distinzione master/slave.
@@ -500,7 +500,7 @@ void Fourth_Level_Vertex::explode_component_timing(Timing_Graph& graph, std::map
 
 }
 
-void Fifth_Level_Vertex::explode_component_timing(Timing_Graph& graph, std::map< std::string, std::map< int, std::string > >& components_map) const
+void Fifth_Level_Vertex::explode_component_timing(Timing_Graph& graph, std::map< std::string, std::map< int, std::string > >& components_map) 
 {
     timing_vertex_t vt = boost::add_vertex(graph);
     graph[vt].name = this->name;

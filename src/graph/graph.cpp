@@ -23,19 +23,20 @@ bool source_graph::create_graph_from_xml(std::string xml)
     // Source_Graph g;
         BOOST_FOREACH(ptree::value_type &v,pt.get_child("root.components"))
         {
-            
+            vertex_t vt = boost::add_vertex(*local_graph);
+            Custom_Vertex vtx = Custom_Vertex();
             switch (int_to_Layer((v.second.get_child("layer")).get_value<int>()))
             {
                 case FUNCTION:
                 {
                     std::string name = (v.second.get_child("name")).get_value<std::string>();
-                    add_L1_node(name);  
+                    vtx.create_L1_child(name);  
                     break;
                 }
                 case TASK:
                 {
                     std::string name = (v.second.get_child("name")).get_value<std::string>();
-                    add_L2_node(name); 
+                    vtx.create_L2_child(name); 
                     break;
                 }    
                 case CONTROLLER:
@@ -60,7 +61,7 @@ bool source_graph::create_graph_from_xml(std::string xml)
                             priority_slots->insert(std::make_pair(i_v.second.get_child("id").get_value<int>(),s));
                         }
                     std::string name = (v.second.get_child("name")).get_value<std::string>();   
-                    add_L3_node(name,priority_slots,OS_scheduler_type);
+                    vtx.create_L3_child(name,priority_slots,OS_scheduler_type);
                     break;
                 }
                 case RESOURCE:
@@ -102,27 +103,30 @@ bool source_graph::create_graph_from_xml(std::string xml)
                     else throw std::runtime_error("no priority handling in 4th level");
                     
                     std::string name = (v.second.get_child("name")).get_value<std::string>();
-                    add_L4_node(name,ports_map,component_type,component_priority_type); 
+                    vtx.create_L4_child(name,ports_map,component_type,component_priority_type); 
                     
                     break;
                 }
                 case PHYSICAL:
                 {
                     std::string name = (v.second.get_child("name")).get_value<std::string>();
-                    add_L5_node(name); 
+                    vtx.create_L5_child(name); 
                     break;
                 }
                 
                 
-                
+               
             }
-            
+            (*local_graph)[vt] = vtx;
+            vertex_map.insert(std::make_pair(vtx.get_name(), vt));
             
             
            
              
            
-        }//m_modules.insert(v.second.data());
+        }
+        PRINT_DEBUG("component reading and creation done");
+        //m_modules.insert(v.second.data());
         BOOST_FOREACH(ptree::value_type &v,pt.get_child("root.edges"))
         {
             //parse data
@@ -132,15 +136,15 @@ bool source_graph::create_graph_from_xml(std::string xml)
             to_node = vertex_map.at(v.second.get_child("to.name").get_value<std::string>());
             from_port = (v.second.get_child_optional("from.port"))? v.second.get_child("from.port").get_value<int>() : NO_PORT;
             to_port = (v.second.get_child_optional("to.port"))? v.second.get_child("to.port").get_value<int>() : NO_PORT;
-            PRINT_DEBUG("from component is: "+(*local_graph)[from_node].name+" and its port is: "+boost::lexical_cast<std::string>(from_port));
-            PRINT_DEBUG("to  component is: "+(*local_graph)[to_node].name+" and its port is: "+boost::lexical_cast<std::string>(to_port));
+            PRINT_DEBUG("from component is: "+(*local_graph)[from_node].get_name()+" and its port is: "+boost::lexical_cast<std::string>(from_port));
+            PRINT_DEBUG("to  component is: "+(*local_graph)[to_node].get_name()+" and its port is: "+boost::lexical_cast<std::string>(to_port));
             PRINT_DEBUG("-----");
             edge_t e; bool b;
             //build edge(s). per qualsiasi caso entrambi tranne che se di 4th livello, in tal caso solo andata.
             boost::tie(e,b) = boost::add_edge(from_node,to_node,(*local_graph));
             (*local_graph)[e].from_port = from_port;
             (*local_graph)[e].to_port = to_port;
-            if ((*local_graph)[from_node].layer != RESOURCE || (*local_graph)[to_node].layer != RESOURCE)
+            if ((*local_graph)[from_node].get_layer() != RESOURCE || (*local_graph)[to_node].get_layer() != RESOURCE)
             {
                 boost::tie(e,b) = boost::add_edge(to_node,from_node,(*local_graph));
                 (*local_graph)[e].from_port = to_port;
@@ -153,23 +157,25 @@ bool source_graph::create_graph_from_xml(std::string xml)
 // DOES NOT HANDLES DOUBLE IN XML, creates a different vertex/edge.
         //TODO handling of doubles.
         
-        
+#if 0     
           std::ofstream myfile;
   myfile.open ("/home/emanuele/Documents/tmp_graph/source_graph.dot");
-  boost::write_graphviz(myfile, *local_graph,make_vertex_writer(boost::get(&Custom_Vertex::layer, *local_graph),boost::get (&Custom_Vertex::name, *local_graph))
+  boost::write_graphviz(myfile, *local_graph,make_vertex_writer(boost::get( &Custom_Vertex::layer, *local_graph),boost::get (&get_name(), *local_graph))
       ,make_edge_writer(boost::get(&Custom_Edge::from_port,*local_graph),boost::get(&Custom_Edge::to_port,*local_graph))
       //boost::make_label_writer(boost::get(&Custom_Edge::priority,local_graph))
 );
   myfile.close();
-        return true;
+#endif
+  return true;
 }
+
 #if 0
 //true -> a path exists, false does not.
 bool custom_graph::search_component_dependences(std::string from, std::string to){
 
 return false;
 }
-#endif
+#
 
 void source_graph::add_L1_node(std::string name)
 {
@@ -237,6 +243,7 @@ bool source_graph::create_graph(std::string xml_location)
 {
 
 }
+#endif
 //usare weak pointers? nel senso che l'idea è di avere sola lettura. weak non puo risalire xo. 
 //quindi dovrebbe ricreare il shared_ptr a valle...nn ha molto senso...
 std::shared_ptr< Source_Graph > source_graph::get_source_graph_ref()

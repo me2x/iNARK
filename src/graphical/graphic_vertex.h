@@ -3,6 +3,7 @@
 
 #include <qt4/QtGui/qgraphicsitem.h>
 #include <memory>
+class Graphic_Edge;
 class Graphic_Vertex : public QGraphicsObject
 {
     Q_OBJECT
@@ -14,6 +15,7 @@ public:
        return Graphic_Vertex_type;
     }
     Graphic_Vertex();
+    ~Graphic_Vertex();
     void setLayer(int i);
     QRectF boundingRect() const;
     QRectF rect();
@@ -21,9 +23,9 @@ public:
     void setRect(QRectF rect);
     QGraphicsTextItem * text;
     virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget = 0);
-    std::map<std::weak_ptr<Graphic_Vertex>,std::weak_ptr<Graphic_Edge> > starting_lines,arriving_lines; //weak ptrs?
+    std::vector<std::weak_ptr<Graphic_Edge> > related_edges; //weak ptrs, when deleting return this vector and let the father (i.e. who owns the shared pointer of those weak) do the work.
     void redraw_lines();
-    //stores the points where the arriving lines start (starting_points), and where the starting lines arrive (arriving_points)
+    
 signals:
     void riquadroCliccatoSx();
     void riquadroCliccatoDx();
@@ -35,7 +37,6 @@ protected:
     virtual void mouseMoveEvent(QGraphicsSceneMouseEvent* event);
     virtual void mousePressEvent(QGraphicsSceneMouseEvent* event);
     virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent* event);
-    void advance();
 private:
     QBrush brush;
     QRectF rekt;

@@ -209,7 +209,7 @@ struct exploration_from_interferes_with_to_visitor :public boost::default_dfs_vi
   std::map<std::string,timing_vertex_t>* reference_map;
   std:: map <timing_vertex_t, std::set<timing_vertex_t>> to_be_whited_on_callback;
   std::map <timing_vertex_t, timing_vertex_t> slave_master;
-  timing_vertex_t curr_slave;
+  timing_vertex_t curr_slave ;
   timing_vertex_t curr_OS = Timing_Graph::null_vertex();
   std::vector<timing_vertex_t> slaves_stack;
   Layer layer;
@@ -218,6 +218,10 @@ struct exploration_from_interferes_with_to_visitor :public boost::default_dfs_vi
       to = init_to;
       reference_map = &references_map;
       layer = l;
+      to_be_whited_on_callback = std:: map <timing_vertex_t, std::set<timing_vertex_t>> ();
+      slave_master = std::map <timing_vertex_t, timing_vertex_t> ();
+      slaves_stack = std::vector<timing_vertex_t>();
+      curr_slave = Timing_Graph::null_vertex();
   }
   using colormap = boost::property_map<Timing_Graph, boost::vertex_color_t>::type;
     colormap vertex_coloring;

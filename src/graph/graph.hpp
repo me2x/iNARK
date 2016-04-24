@@ -22,7 +22,9 @@ public:
     void add_L4_node(std::string name, std::shared_ptr<std::map<int,Port>> ports, Component_Type type,Component_Priority_Category handling); //se no troppe cose da passare come "int struct int"
     void add_L5_node(std::string name);
     
-    
+    void delete_node(vertex_t to_be_deleted);
+    //node update is NOT possible. delete+build
+       
 private:
     std::shared_ptr<Source_Graph> local_graph;
     std::map<std::string, vertex_t> vertex_map;
