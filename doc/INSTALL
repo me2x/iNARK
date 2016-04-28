@@ -1,3 +1,4 @@
-boost: apt-get install libboost all o quel che l'è
+boost: apt-get install libboost all o quel che l'è // opensuse vuole boost-devel. 
+//modificato boost dir, da controllare che vada su mint.
 
 cmake: -DDEBUG:BOOL=ON/OFF a seconda se si vogliono le print di debug o meno
