@@ -43,6 +43,87 @@ void timing_internal_graph::build_graph(std::shared_ptr<Source_Graph> g){
         //cases: 0 func to func, 1 func to task, 2 tast to task, 3 task to os, 4 os to os, 5 os to processor, 6 resource to resource, 7 resource to physical
         switch((*g)[old_graph_source].get_layer()+(*g)[old_graph_target].get_layer())
         {
+            case 3: 
+            {
+                //devo recuperare priority dallo scheduler slot del to component.
+                //back edges have already been inserted in the previous graph. have to be handled here so if source is the controller layer component have to be handled too.
+                if ((*g)[old_graph_target].get_layer() == Layer::CONTROLLER)
+                {
+                    std::shared_ptr<Third_Level_Vertex> vtx = ((*g)[old_graph_target]).get_shared_ptr_l3();
+                    switch (vtx->OS_scheduler_type)
+                    {
+                        case ROUND_ROBIN:
+                        {
+                            //no name changes.
+                            new_source = get_node_reference((*g)[old_graph_source].get_name());
+                            new_target = get_node_reference((*g)[old_graph_target].get_name());
+                            boost::tie(e,b) = boost::add_edge(new_source,new_target,ig);
+                            break;
+                        }
+                        case PRIORITY:
+                        {
+                            //get slot, read priority, get correct component: 0 for no priority, 1 for mission critical, 2 for safety critical.
+                            Priority pr = vtx->priority_slots->at((*g)[*ei].to_port).pr;
+                            new_source = get_node_reference((*g)[old_graph_source].get_name());
+                            new_target = get_node_reference(components_map.at((*g)[old_graph_target].get_name()).at(pr));
+                            boost::tie(e,b) = boost::add_edge(new_source,new_target,ig);
+                            break;
+                        }
+                        case TDMA:
+                        {
+                            new_source = get_node_reference((*g)[old_graph_source].get_name());
+                            new_target = get_node_reference(components_map.at((*g)[old_graph_target].get_name()).at((*g)[*ei].to_port));
+                            boost::tie(e,b) = boost::add_edge(new_source,new_target,ig);
+                            break;
+                        }
+                        default:
+                        {
+                            throw std::runtime_error("Error in input: priority handling error");
+                        }
+                    }
+                }
+                else if ((*g)[old_graph_source].get_layer() == Layer::CONTROLLER)
+                {
+                    std::shared_ptr<Third_Level_Vertex> vtx = ((*g)[old_graph_source]).get_shared_ptr_l3();
+                    switch (vtx->OS_scheduler_type)
+                    {
+                        case ROUND_ROBIN:
+                        {
+                            //no name changes.
+                            new_source = get_node_reference((*g)[old_graph_source].get_name());
+                            new_target = get_node_reference((*g)[old_graph_target].get_name());
+                            boost::tie(e,b) = boost::add_edge(new_source,new_target,ig);
+                            break;
+                        }
+                        case PRIORITY:
+                        {
+                            //get slot, read priority, get correct component: 0 for no priority, 1 for mission critical, 2 for safety critical.
+                            Priority pr = vtx->priority_slots->at((*g)[*ei].from_port).pr;
+                            
+                            PRINT_DEBUG("the priority of port "+boost::lexical_cast<std::string>((*g)[*ei].from_port)+"is"+boost::lexical_cast<std::string>(pr));
+                            new_target = get_node_reference((*g)[old_graph_target].get_name());
+                            new_source = get_node_reference(components_map.at((*g)[old_graph_source].get_name()).at(pr));
+                            boost::tie(e,b) = boost::add_edge(new_source,new_target,ig);
+                            break;
+                        }
+                        case TDMA:
+                        {
+                            new_target = get_node_reference((*g)[old_graph_target].get_name());
+                            new_source = get_node_reference(components_map.at((*g)[old_graph_source].get_name()).at((*g)[*ei].from_port));
+                            boost::tie(e,b) = boost::add_edge(new_source,new_target,ig);
+                            break;
+                        }
+                        default:
+                        {
+                            throw std::runtime_error("Error in input: priority handling error");
+                        }
+                    }
+                }
+                else
+                    throw std::runtime_error("Error in input: OS not involved");
+                
+                break;
+            }
             case 4: //all to all. è un po' overkill ma non dovrebbe creare dipendenze supplementari. aggiunge un sacco di edges e non so se ciò possa rallentare esplorazione.
             {
                 PRINT_DEBUG("edge creation: inside switch, case 4");

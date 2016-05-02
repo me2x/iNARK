@@ -1,10 +1,10 @@
 cmake_minimum_required (VERSION 3.0.2)
 project (iNARK)
 
-set(Boost_INCLUDE_DIR /usr/include)
+#set(Boost_INCLUDE_DIR /usr/include)
 find_package(Boost COMPONENTS system filesystem program_options REQUIRED)
-include_directories(${Boost_INCLUDE_DIR})
-link_directories(${Boost_LIBRARY_DIR})
+include_directories(${Boost_INCLUDE_DIRS})
+#link_directories(${Boost_LIBRARY_DIR})
 
 
 SET(GRAPH_SRCS

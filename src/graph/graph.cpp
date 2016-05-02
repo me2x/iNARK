@@ -76,13 +76,16 @@ bool source_graph::create_graph_from_xml(std::string xml)
                             p.id = i_v.second.get_child("id").get_value<int>();
                             p.associated_port_id =i_v.second.get_child_optional("associatedPort")? i_v.second.get_child("associatedPort").get_value<int>():NO_PORT;
                             p.priority = i_v.second.get_child_optional("priority")?i_v.second.get_child("priority").get_value<int>():DEFAULT_PRIORITY;
-                            ports_map->insert(std::make_pair(i_v.second.get_child("id").get_value<int>(),p));
+                            auto res = ports_map->insert(std::make_pair(i_v.second.get_child("id").get_value<int>(),p));
+                            if (!res.second)
+                                throw std::runtime_error("input error: port already exists");
                         }
                     }
                     else
                     {
                         PRINT_DEBUG("error no ports in a component");
                         //TODO error handling
+                        throw std::runtime_error("input error: layer 4 component without ports");
                     }
                     Component_Type component_type;
                     if(v.second.get_child_optional("type"))
@@ -127,6 +130,12 @@ bool source_graph::create_graph_from_xml(std::string xml)
         }
         PRINT_DEBUG("component reading and creation done");
         //m_modules.insert(v.second.data());
+        
+        
+       
+        
+        
+        
         BOOST_FOREACH(ptree::value_type &v,pt.get_child("root.edges"))
         {
             //parse data
@@ -140,11 +149,12 @@ bool source_graph::create_graph_from_xml(std::string xml)
             PRINT_DEBUG("to  component is: "+(*local_graph)[to_node].get_name()+" and its port is: "+boost::lexical_cast<std::string>(to_port));
             PRINT_DEBUG("-----");
             edge_t e; bool b;
-            //build edge(s). per qualsiasi caso entrambi tranne che se di 4th livello, in tal caso solo andata.
+            //build edge(s). 
+            //all intra layer edges are one - way, the inter layer are the mapped-on/ interfere with relations so must be bidirectional
             boost::tie(e,b) = boost::add_edge(from_node,to_node,(*local_graph));
             (*local_graph)[e].from_port = from_port;
             (*local_graph)[e].to_port = to_port;
-            if ((*local_graph)[from_node].get_layer() != RESOURCE || (*local_graph)[to_node].get_layer() != RESOURCE)
+            if ((*local_graph)[from_node].get_layer() != (*local_graph)[to_node].get_layer())
             {
                 boost::tie(e,b) = boost::add_edge(to_node,from_node,(*local_graph));
                 (*local_graph)[e].from_port = to_port;
@@ -166,86 +176,30 @@ bool source_graph::create_graph_from_xml(std::string xml)
 );
   myfile.close();
 #endif
+#ifdef SEM_CHECK
+//make some checks on the semantic of the graph (i.e. ports are monodirectional, no edges skip a layer, ...)
+
+//forall components l == 4; get outgoing and ingoing edges: check ports. if one port is on more than one edge in different directions throw error. 
+/// voglio mantenere piu archi, significano design decisions not yet taken
+/// si può fare solo ciclando su archi, magari 2 volte. ma non credo serva, costruisco struttura dati comp : port : in/out nel momento in cui viene incontrata. 
+/// se poi esiste gia, check direzione sia uguale else error 
+//alternative (forse meglio): slave port -> exit -> possono essere solo from. master port -> entry point -> solo to. 
+//ciclo su edge: from: get component-> get port ->is master == false passed, else throw error.
+//opposto per master.
+
+//forall edges: if to > from+1 || to < from throw error  \\\ ovvero puo esseree solo uguale o maggiore di uno.
+
+//components have different names. eeppero questo mi viene "gratis" poi, quando uso il nome come chiave di mappa: basterebbe mettere il controllo là.
+//ora come ora crea entrambi e "first come first serve"
+
+#endif
+
+
+
   return true;
 }
 
-#if 0
-//true -> a path exists, false does not.
-bool custom_graph::search_component_dependences(std::string from, std::string to){
 
-return false;
-}
-#
-
-void source_graph::add_L1_node(std::string name)
-{
-    vertex_t vt = boost::add_vertex(*local_graph);
-    // it has to be done this way. changing to (*local_graph)[vt] = First_Level_Vertex(); and working with the local_graph[vt] is not a viable option. returns a bad function call.
-    First_Level_Vertex vtx = First_Level_Vertex();
-    vtx.layer = FUNCTION;
-    vtx.name = name;
-    (*local_graph)[vt] = vtx;
-    (*local_graph)[vt].add_function(vtx);  
-    vertex_map.insert(std::make_pair(name, vt));
-}
-void source_graph::add_L2_node(std::string name)
-{
-    vertex_t vt = boost::add_vertex(*local_graph);
-    Second_Level_Vertex vtx = Second_Level_Vertex();
-    vtx.layer = TASK;
-    vtx.name = name;
-    (*local_graph)[vt] = vtx;
-    (*local_graph)[vt].add_function(vtx);  
-    vertex_map.insert(std::make_pair(name, vt));
-}
-void source_graph::add_L3_node(std::string name, std::shared_ptr< std::map< int, Scheduler_Slot > > scheduler, Component_Priority_Category handling)
-{
-    vertex_t vt = boost::add_vertex(*local_graph);
-    Third_Level_Vertex vtx = Third_Level_Vertex();
-    vtx.layer = CONTROLLER;
-    vtx.name = name;
-    vtx.OS_scheduler_type = handling;
-    vtx.priority_slots = scheduler; //not sure it works, dovrebbe essendo shared_ptr.
-    (*local_graph)[vt] = vtx;
-    (*local_graph)[vt].add_function(vtx); //potrebbe non andare. 
-    //code here
-    
-    
-     vertex_map.insert(std::make_pair(name, vt));
-}
-void source_graph::add_L4_node(std::string name, std::shared_ptr< std::map< int, Port > > ports, Component_Type type, Component_Priority_Category handling)
-{
-    vertex_t vt = boost::add_vertex(*local_graph);
-    Fourth_Level_Vertex vtx = Fourth_Level_Vertex();
-    vtx.layer = RESOURCE;
-    vtx.name = name;
-    vtx.component_priority_type = handling;
-    vtx.ports_map = ports; //not sure it works
-    vtx.component_type = type;
-    (*local_graph)[vt] = vtx;
-    (*local_graph)[vt].add_function(vtx); //potrebbe non andare. 
-    //code here
-    //code here
-    
-     vertex_map.insert(std::make_pair(name, vt));
-}
-void source_graph::add_L5_node(std::string name)
-{
-    vertex_t vt = boost::add_vertex(*local_graph);
-    Fifth_Level_Vertex vtx = Fifth_Level_Vertex();
-    vtx.layer = PHYSICAL;
-    vtx.name = name;
-    (*local_graph)[vt] = vtx;
-    (*local_graph)[vt].add_function(vtx); //potrebbe non andare. 
-    vertex_map.insert(std::make_pair(name, vt));
-}
-bool source_graph::create_graph(std::string xml_location)
-{
-
-}
-#endif
-//usare weak pointers? nel senso che l'idea è di avere sola lettura. weak non puo risalire xo. 
-//quindi dovrebbe ricreare il shared_ptr a valle...nn ha molto senso...
 std::shared_ptr< Source_Graph > source_graph::get_source_graph_ref()
 {
     std::shared_ptr< Source_Graph > return_value = local_graph;

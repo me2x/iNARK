@@ -3,6 +3,7 @@
 #define iNARK_VERSION_MINOR @iNARK_VERSION_MINOR@
 #cmakedefine DEBUG
 #cmakedefine TIME
+#cmakedefine SEM_CHECK
 
 #ifdef TIME
 #ifndef TIME_COMMON_H
@@ -29,4 +30,13 @@ struct measure
     }
 };
 #endif
+#endif
+
+#ifndef SEM_CHECK_H
+#define SEM_CHECK_H
+constexpr inline bool semantic_check(void)
+{
+    return @SEM_CHECK_BOOL@;
+}
+
 #endif

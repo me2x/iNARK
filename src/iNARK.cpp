@@ -8,8 +8,8 @@
 #include "graph/graph.hpp"
 #include "graph/timing_internal_graph.hpp"
 
-#include <QtGui/QApplication>
-#include "graphical/mainwindow.h"
+//#include <QtGui/QApplication>
+//#include "graphical/mainwindow.h"
 
 #include <memory>
 int main (int argc, char *argv[])
@@ -195,11 +195,12 @@ int main (int argc, char *argv[])
     }
     else
     {
+#if 0
         QApplication app(argc, argv);
         MainWindow provagui;
         provagui.show();
         return app.exec();
-        
+#endif   
     }
   }
   catch(const std::exception& e)  // Consider using a custom exception type for intentional throws. A good idea might be a `return_exception`.
