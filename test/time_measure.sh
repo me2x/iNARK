@@ -13,14 +13,14 @@ while [  $COUNTER -lt $2 ]; do
 	do
 	  if [ $j -ne $k ]; then
 	      #echo "source task $j target task $k" | tee -a log_d1_$1
-	      ../build/time/src/iNARK -i $1 --source task_$j --target task_$k --type 1 --depth 1 | tee -a log_d1__$COUNTER 
-             ../build/time/src/iNARK -i $1 --source task_$j --target task_$k --type 1 --depth 1
+	      ../build/src/iNARK -i $1 --source task_$j --target task_$k --type 1 --depth 1 | tee -a log_d1__$COUNTER 
+             ../build/src/iNARK -i $1 --source task_$j --target task_$k --type 1 --depth 1
              echo "($j to $k) $?" >> log_status_d1__$COUNTER
-             ../build/time/src/iNARK -i $1 --source task_$j --target task_$k --type 1 --depth 2 | tee -a log_d2__$COUNTER
-             ../build/time/src/iNARK -i $1 --source task_$j --target task_$k --type 1 --depth 2
+             ../build/src/iNARK -i $1 --source task_$j --target task_$k --type 1 --depth 2 | tee -a log_d2__$COUNTER
+             ../build/src/iNARK -i $1 --source task_$j --target task_$k --type 1 --depth 2
              echo "($j to $k) $?" >> log_status_d2__$COUNTER 
-             ../build/time/src/iNARK -i $1 --source task_$j --target task_$k --type 1 --depth 3 | tee -a log_d3__$COUNTER
-             ../build/time/src/iNARK -i $1 --source task_$j --target task_$k --type 1 --depth 3
+             ../build/src/iNARK -i $1 --source task_$j --target task_$k --type 1 --depth 3 | tee -a log_d3__$COUNTER
+             ../build/src/iNARK -i $1 --source task_$j --target task_$k --type 1 --depth 3
              echo "($j to $k) $?" >> log_status_d3__$COUNTER
               
 	  fi

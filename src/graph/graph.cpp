@@ -8,7 +8,7 @@
 #include <boost/property_tree/xml_parser.hpp>
 // Visitor that throw an exception when finishing the destination vertex
 
-
+#include <memory>
 
 
 
@@ -193,7 +193,6 @@ bool source_graph::create_graph_from_xml(std::string xml)
 edge_iter ei, ei_end;
 for (boost::tie(ei, ei_end) = boost::edges(*local_graph); ei != ei_end; ++ei)
     {
-        timing_edge_t e; bool b;
         vertex_t old_graph_source,old_graph_target;
         old_graph_source = boost::source(*ei,*local_graph);
         old_graph_target = boost::target(*ei,*local_graph);
@@ -202,6 +201,15 @@ for (boost::tie(ei, ei_end) = boost::edges(*local_graph); ei != ei_end; ++ei)
 
         if (std::abs((*local_graph)[old_graph_target].get_layer() - (*local_graph)[old_graph_source].get_layer())>1)
             throw std::runtime_error("Input error: edge is skipping layers");
+        if ((*local_graph)[old_graph_target].get_layer() == Layer::RESOURCE &&  (*local_graph)[old_graph_source].get_layer()== Layer::RESOURCE)
+        {
+            std::shared_ptr<Fourth_Level_Vertex> target_ptr = (*local_graph)[old_graph_target].get_shared_ptr_l4();
+            std::shared_ptr<Fourth_Level_Vertex> source_ptr = (*local_graph)[old_graph_source].get_shared_ptr_l4();
+            if (!(target_ptr->ports_map->at((*local_graph)[*ei].to_port).is_master))
+                throw std::runtime_error("Input error: entry port is not master of the component");
+             if ((source_ptr->ports_map->at((*local_graph)[*ei].from_port).is_master))
+                throw std::runtime_error("Input error: exit port is master of the component");
+        }
     }
 
 //components have different names. eeppero questo mi viene "gratis" poi, quando uso il nome come chiave di mappa: basterebbe mettere il controllo là.
