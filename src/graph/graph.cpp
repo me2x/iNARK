@@ -206,9 +206,9 @@ for (boost::tie(ei, ei_end) = boost::edges(*local_graph); ei != ei_end; ++ei)
             std::shared_ptr<Fourth_Level_Vertex> target_ptr = (*local_graph)[old_graph_target].get_shared_ptr_l4();
             std::shared_ptr<Fourth_Level_Vertex> source_ptr = (*local_graph)[old_graph_source].get_shared_ptr_l4();
             if (!(target_ptr->ports_map->at((*local_graph)[*ei].to_port).is_master))
-                throw std::runtime_error("Input error: entry port is not master of the component");
+                throw std::runtime_error("Input error: entry port "+boost::lexical_cast<std::string>((*local_graph)[*ei].to_port) + " is not master of the component "+(*local_graph)[old_graph_target].get_name());
              if ((source_ptr->ports_map->at((*local_graph)[*ei].from_port).is_master))
-                throw std::runtime_error("Input error: exit port is master of the component");
+                throw std::runtime_error("Input error: exit port "+boost::lexical_cast<std::string>((*local_graph)[*ei].from_port) + " is not slave of the component "+(*local_graph)[old_graph_source].get_name());
         }
     }
 
