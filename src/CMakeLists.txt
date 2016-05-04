@@ -36,7 +36,6 @@ configure_file (
 include_directories("${PROJECT_BINARY_DIR}")
 include_directories ("${PROJECT_SOURCE_DIR}")
 add_subdirectory (graph)
-#add_subdirectory(graphical)
 
 add_executable(iNARK iNARK.cpp)
 

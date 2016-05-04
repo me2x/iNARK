@@ -8,9 +8,6 @@
 #include "graph/graph.hpp"
 #include "graph/timing_internal_graph.hpp"
 
-//#include <QtGui/QApplication>
-//#include "graphical/mainwindow.h"
-
 #include <memory>
 int main (int argc, char *argv[])
 {
@@ -21,13 +18,11 @@ int main (int argc, char *argv[])
     std::string to_component = "not_defined";
     int search_type = 0 ;
     int search_depth = 0;
-    int version_type = 0;
-    
+     
     boost::program_options::options_description desc("Allowed options");
     desc.add_options()
     ("help,h","print usage message")
     ("input,i",boost::program_options::value(&input_graph_name),"name of the file containing the xml graph")
-   // ("gui",boost::program_options::value(&version_type),"1 for graphical, empty for textual")
     ("source",boost::program_options::value (&from_component),"name of the component whose interference has to be tested")
     ("target",boost::program_options::value (&to_component),"name of the component whose independence has to be tested")
     ("type",boost::program_options::value(&search_type),"type of the search to be performed: 1 for inteference of source toward target, 2 for possible interferences of source and 3 for possible interferences to target")
@@ -62,11 +57,7 @@ int main (int argc, char *argv[])
         if (vm.count("depth")) {  
             search_depth = vm["depth"].as<int>();
         }
- //       if (vm.count("gui")) {  
-   //         version_type = vm["gui"].as<int>();
-     //   }
-    if(version_type == 0)
-    {
+
         source_graph g = source_graph();
         if (input_graph_name != "not_defined")
         {
@@ -194,16 +185,6 @@ int main (int argc, char *argv[])
         
         }
 
-    }
-    else
-    {
-#if 0
-        QApplication app(argc, argv);
-        MainWindow provagui;
-        provagui.show();
-        return app.exec();
-#endif   
-    }
   }
   catch(const std::exception& e)  // Consider using a custom exception type for intentional throws. A good idea might be a `return_exception`.
   {   
