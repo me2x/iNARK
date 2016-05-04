@@ -27,7 +27,7 @@ int main (int argc, char *argv[])
     desc.add_options()
     ("help,h","print usage message")
     ("input,i",boost::program_options::value(&input_graph_name),"name of the file containing the xml graph")
-    ("gui",boost::program_options::value(&version_type),"1 for graphical, empty for textual")
+   // ("gui",boost::program_options::value(&version_type),"1 for graphical, empty for textual")
     ("source",boost::program_options::value (&from_component),"name of the component whose interference has to be tested")
     ("target",boost::program_options::value (&to_component),"name of the component whose independence has to be tested")
     ("type",boost::program_options::value(&search_type),"type of the search to be performed: 1 for inteference of source toward target, 2 for possible interferences of source and 3 for possible interferences to target")
@@ -62,9 +62,9 @@ int main (int argc, char *argv[])
         if (vm.count("depth")) {  
             search_depth = vm["depth"].as<int>();
         }
-        if (vm.count("gui")) {  
-            version_type = vm["gui"].as<int>();
-        }
+ //       if (vm.count("gui")) {  
+   //         version_type = vm["gui"].as<int>();
+     //   }
     if(version_type == 0)
     {
         source_graph g = source_graph();
@@ -81,7 +81,7 @@ int main (int argc, char *argv[])
             std::cout<<std::endl<<std::endl<<"\t\t\tinput file not found"<<std::endl<<std::endl;
             std::cout << desc << "\n";
             
-            return 0;
+            return EXIT_FAILURE;
         }
         
         Layer l = LAYER_ERROR;
@@ -170,6 +170,7 @@ int main (int argc, char *argv[])
     #ifdef DEBUG	
             std::cout<<"not implemented yet"<<std::endl;
     #endif	
+            return ENOSYS;
             break;
         }
         case 3:
@@ -177,7 +178,8 @@ int main (int argc, char *argv[])
             //ig.search_interfered_nodes(to_component, true);
     //#ifdef DEBUG	
             std::cout<<"not implemented yet"<<std::endl;
-    //#endif	
+    //#endif
+            return ENOSYS;            
             break;
         }
         default:

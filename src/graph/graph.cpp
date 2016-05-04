@@ -57,7 +57,7 @@ bool source_graph::create_graph_from_xml(std::string xml)
                         {
                             Scheduler_Slot s;
                             s.id = i_v.second.get_child("id").get_value<int>();
-                            s.pr = int_to_Priority(i_v.second.get_child("priority").get_value<int>());
+                            s.pr = i_v.second.get_child_optional("priority")?int_to_Priority(i_v.second.get_child("priority").get_value<int>()):Priority::NO_PRIORITY;
                             priority_slots->insert(std::make_pair(i_v.second.get_child("id").get_value<int>(),s));
                         }
                     std::string name = (v.second.get_child("name")).get_value<std::string>();   
@@ -187,10 +187,34 @@ bool source_graph::create_graph_from_xml(std::string xml)
 //ciclo su edge: from: get component-> get port ->is master == false passed, else throw error.
 //opposto per master.
 
+
+
 //forall edges: if to > from+1 || to < from throw error  \\\ ovvero puo esseree solo uguale o maggiore di uno.
+edge_iter ei, ei_end;
+for (boost::tie(ei, ei_end) = boost::edges(*local_graph); ei != ei_end; ++ei)
+    {
+        timing_edge_t e; bool b;
+        vertex_t old_graph_source,old_graph_target;
+        old_graph_source = boost::source(*ei,*local_graph);
+        old_graph_target = boost::target(*ei,*local_graph);
+        PRINT_DEBUG("the source component is: "+(*local_graph)[old_graph_source].get_name()+" and its port is: "+boost::lexical_cast<std::string>((*local_graph)[*ei].from_port));
+        PRINT_DEBUG("the target component is: "+(*local_graph)[old_graph_target].get_name()+" and its port is: "+boost::lexical_cast<std::string>((*local_graph)[*ei].to_port));
+
+        if (std::abs((*local_graph)[old_graph_target].get_layer() - (*local_graph)[old_graph_source].get_layer())>1)
+            throw std::runtime_error("Input error: edge is skipping layers");
+    }
 
 //components have different names. eeppero questo mi viene "gratis" poi, quando uso il nome come chiave di mappa: basterebbe mettere il controllo là.
 //ora come ora crea entrambi e "first come first serve"
+std::pair<vertex_iter, vertex_iter> vp;
+std::set<std::string> names;
+    for (vp = boost::vertices(*local_graph); vp.first != vp.second; ++vp.first)
+    {
+        if (names.find((*local_graph)[*vp.first].get_name())!= names.end())
+            throw std::runtime_error("Input error: two components with the same name");
+        else
+            names.insert((*local_graph)[*vp.first].get_name());
+    }
 
 #endif
 
