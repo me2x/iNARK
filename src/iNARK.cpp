@@ -7,6 +7,11 @@
 
 #include "graph/graph.hpp"
 #include "graph/timing_internal_graph.hpp"
+
+//#include <QtGui/QApplication>
+//#include "graphical/mainwindow.h"
+
+#include <memory>
 int main (int argc, char *argv[])
 {
   try
@@ -16,11 +21,13 @@ int main (int argc, char *argv[])
     std::string to_component = "not_defined";
     int search_type = 0 ;
     int search_depth = 0;
+    int version_type = 0;
     
     boost::program_options::options_description desc("Allowed options");
     desc.add_options()
     ("help,h","print usage message")
     ("input,i",boost::program_options::value(&input_graph_name),"name of the file containing the xml graph")
+   // ("gui",boost::program_options::value(&version_type),"1 for graphical, empty for textual")
     ("source",boost::program_options::value (&from_component),"name of the component whose interference has to be tested")
     ("target",boost::program_options::value (&to_component),"name of the component whose independence has to be tested")
     ("type",boost::program_options::value(&search_type),"type of the search to be performed: 1 for inteference of source toward target, 2 for possible interferences of source and 3 for possible interferences to target")
@@ -55,124 +62,148 @@ int main (int argc, char *argv[])
         if (vm.count("depth")) {  
             search_depth = vm["depth"].as<int>();
         }
+ //       if (vm.count("gui")) {  
+   //         version_type = vm["gui"].as<int>();
+     //   }
+    if(version_type == 0)
+    {
+        source_graph g = source_graph();
+        if (input_graph_name != "not_defined")
+        {
+    #ifdef TIME 
+        std::cout << "graph creation time is (ns): "<<measure<std::chrono::nanoseconds>::execution( [&]() { g.create_graph_from_xml(input_graph_name);})<<std::endl;
+    #else
+            g.create_graph_from_xml(input_graph_name);
+    #endif
+        }
+        else 
+        {
+            std::cout<<std::endl<<std::endl<<"\t\t\tinput file not found"<<std::endl<<std::endl;
+            std::cout << desc << "\n";
+            
+            return EXIT_FAILURE;
+        }
         
-    
-    source_graph g = source_graph();
-    if (input_graph_name != "not_defined")
-    {
-#ifdef TIME 
-      std::cout << "graph creation time is (ns): "<<measure<std::chrono::nanoseconds>::execution( [&]() { g.create_graph(input_graph_name);})<<std::endl;
-#else
-        g.create_graph(input_graph_name);
-#endif
-    }
-    else 
-    {
-        std::cout<<std::endl<<std::endl<<"\t\t\tinput file not found"<<std::endl<<std::endl;
-        std::cout << desc << "\n";
-        
-        return 0;
-    }
-    
-    Layer l = LAYER_ERROR;
-    switch (search_depth)
-    {
-      case 0: 
-      {
-	std::cerr<<"research depth not defined"<<std::endl;
-#ifdef DEBUG	
-	std::cout<<"research depth not defined"<<std::endl;
-#endif	
-	return EXIT_FAILURE;
-	break;
-      }
-      case 1:
-      {
-	l = CONTROLLER;
-	break;
-      }
-      case 2:
-      {
-	l = RESOURCE;
-	break;
-      }
-      case 3:
-      {
-	l = PHYSICAL;
-	break;
-      }
-      default:
-      {
-	std::cerr<<"error: search depth value not valid"<<std::endl;
-//#ifdef DEBUG	
-	std::cout<<"error: search depth value not valid"<<std::endl;
-//#endif	
-	return EXIT_FAILURE;
-	break;
-      }
-    }
-    timing_internal_graph ig = timing_internal_graph(g.local_graph);
-//#ifdef TIME 
-  //    std::cout << "graph creation time is (ns): "<<measure<std::chrono::nanoseconds>::execution( [&]() { ig = timing_internal_graph(g.local_graph);})<<std::endl;
-//#else
- //   ig = timing_internal_graph(g.local_graph);
-//#endif
-
-    
-    switch (search_type)
-    {
+        Layer l = LAYER_ERROR;
+        switch (search_depth)
+        {
         case 0: 
-      {
-	std::cerr<<"research type not defined"<<std::endl;
-#ifdef DEBUG	
-	std::cout<<"research type not defined"<<std::endl;
-#endif	
-	return EXIT_FAILURE;
-	break;
-      }
-      case 1:
-      {
-          
-          bool search_result_configuration_OK;
-          
-#ifdef TIME          
-          std::cout << "graph exploration time is (ns): "<<measure<std::chrono::nanoseconds>::execution( [&]() {search_result_configuration_OK = ig.search_path(from_component, to_component,l);})<<std::endl;
-#else	
-        search_result_configuration_OK = ig.search_path(from_component, to_component,l);
-#endif
-        if (search_result_configuration_OK)
-        return 0;
-    else return 100;
-	break;
-      }
-      case 2:
-      {
-	//ig.search_interfered_nodes(from_component, false);
-#ifdef DEBUG	
-	std::cout<<"not implemented yet"<<std::endl;
-#endif	
-	break;
-      }
-      case 3:
-      {
-	//ig.search_interfered_nodes(to_component, true);
-//#ifdef DEBUG	
-	std::cout<<"not implemented yet"<<std::endl;
-//#endif	
-	break;
-      }
-      default:
-      {
-	std::cerr<<"error: search type value not valid"<<std::endl;
-//#ifdef DEBUG	
-	std::cout<<"error: search type value not valid"<<std::endl;
-//#endif	
-	return EXIT_FAILURE;
-	break;
-      }
-      
-    }
+        {
+            std::cerr<<"research depth not defined"<<std::endl;
+    #ifdef DEBUG	
+            std::cout<<"research depth not defined"<<std::endl;
+    #endif	
+            return EXIT_FAILURE;
+            break;
+        }
+        case 1:
+        {
+            l = CONTROLLER;
+            break;
+        }
+        case 2:
+        {
+            l = RESOURCE;
+            break;
+        }
+        case 3:
+        {
+            l = PHYSICAL;
+            break;
+        }
+        default:
+        {
+            std::cerr<<"error: search depth value not valid"<<std::endl;
+    //#ifdef DEBUG	
+            std::cout<<"error: search depth value not valid"<<std::endl;
+    //#endif	
+            return EXIT_FAILURE;
+            break;
+        }
+        }
+        timing_internal_graph ig = timing_internal_graph();
+        std::shared_ptr<Source_Graph> tmp = g.get_source_graph_ref();
+        
+    #ifdef TIME 
+        std::cout << "graph creation time is (ns): "<<measure<std::chrono::nanoseconds>::execution( [&]() { ig.build_graph(g.get_source_graph_ref());})<<std::endl;
+    #else
+        ig.build_graph(g.get_source_graph_ref());
+    #endif
 
+        
+        switch (search_type)
+        {
+            case 0: 
+        {
+            std::cerr<<"research type not defined"<<std::endl;
+    #ifdef DEBUG	
+            std::cout<<"research type not defined"<<std::endl;
+    #endif	
+            return EXIT_FAILURE;
+            break;
+        }
+        case 1:
+        {
+            
+            bool search_result_configuration_OK;
+            
+    #ifdef TIME          
+            std::cout << "graph exploration time is (ns): "<<measure<std::chrono::nanoseconds>::execution( [&]() {search_result_configuration_OK = ig.search_path(from_component, to_component,l);})<<std::endl;
+    #else	
+            search_result_configuration_OK = ig.search_path(from_component, to_component,l);
+    #endif
+            if (search_result_configuration_OK)
+            {
+                std::cout <<"no path found"<<std::endl;    
+                return 0;
+            }
+            else
+            {
+                std::cout<<"path found" <<std::endl;
+                return 100;
+            }
+            break;
+        }
+        case 2:
+        {
+            //ig.search_interfered_nodes(from_component, false);
+    #ifdef DEBUG	
+            std::cout<<"not implemented yet"<<std::endl;
+    #endif	
+            return ENOSYS;
+            break;
+        }
+        case 3:
+        {
+            //ig.search_interfered_nodes(to_component, true);
+    //#ifdef DEBUG	
+            std::cout<<"not implemented yet"<<std::endl;
+    //#endif
+            return ENOSYS;            
+            break;
+        }
+        default:
+        {
+            std::cerr<<"error: search type value not valid"<<std::endl;
+    //#ifdef DEBUG	
+            std::cout<<"error: search type value not valid"<<std::endl;
+    //#endif	
+            return EXIT_FAILURE;
+            break;
+        }
+        
+        }
+
+    }
+    else
+    {
+#if 0
+        QApplication app(argc, argv);
+        MainWindow provagui;
+        provagui.show();
+        return app.exec();
+#endif   
+    }
   }
   catch(const std::exception& e)  // Consider using a custom exception type for intentional throws. A good idea might be a `return_exception`.
   {   
@@ -183,5 +214,5 @@ int main (int argc, char *argv[])
     return EXIT_FAILURE;
   }
 
-
+    
 }

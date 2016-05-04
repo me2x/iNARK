@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 2.8)
+cmake_minimum_required (VERSION 3.0.2)
 project (iNARK)
 
 # The version number.
@@ -6,6 +6,13 @@ set (iNARK_VERSION_MAJOR 0)
 set (iNARK_VERSION_MINOR 0)
 
 set (DEBUG OFF CACHE BOOL "Some user specified option")
+set (TIME OFF CACHE BOOL "Some user specified option")
+set (SEM_CHECK OFF CACHE BOOL "Some user specified option")
+if (SEM_CHECK)
+    set (SEM_CHECK_BOOL "true")
+else(SEM_CHECK)
+    set (SEM_CHECK_BOOL "false")
+endif (SEM_CHECK)
 #copiato non ho idea del funzionamento
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
@@ -29,8 +36,10 @@ configure_file (
 include_directories("${PROJECT_BINARY_DIR}")
 include_directories ("${PROJECT_SOURCE_DIR}")
 add_subdirectory (graph)
+#add_subdirectory(graphical)
 
 add_executable(iNARK iNARK.cpp)
 
 
 target_link_libraries( iNARK graph)
+

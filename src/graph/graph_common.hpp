@@ -5,6 +5,7 @@
 #include <boost/graph/undirected_dfs.hpp>
 #include <boost/graph/graph_utility.hpp>
 #include <functional>
+#include <memory>
 #ifndef GRAPH_COMMON_H
 #define GRAPH_COMMON_H
 
@@ -43,9 +44,31 @@ enum Component_Type{
   NOT_SPECIFIED,
   TYPE_ERROR
 };
+
+enum Search_Layers{
+    S_CONTROLLER,
+    S_RESOURCE,
+    S_PHYSICAL,
+    SEARCH_LAYER_END
+};
+enum Search_Types{
+    TIMING,
+    PROVA,
+    SEARCH_TYPE_END
+};
 class Custom_Vertex;
 class Custom_Edge;
 
+namespace commons{
+Layer int_to_Layer(int i);
+Priority int_to_Priority(int i);
+std::string Layer_to_String(Layer l);
+Component_Type int_To_Type(int i);
+Component_Priority_Category int_To_Priority_Handler(int i);
+std::string get_search_layer_names(Search_Layers l);
+std::string get_search_type_name(Search_Types t);
+    
+}
 //timing node cannot be forward declared because of graph library: incomplete base
 class Timing_Node{// subclass removed: when doing the search the graph is passed by copy and the runtime properties like subclasses are lost.
 public:
@@ -59,7 +82,7 @@ public:
 
 
 
-typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS,Custom_Vertex,Custom_Edge>Source_Graph;
+typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS,Custom_Vertex,Custom_Edge >Source_Graph;
 typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS,boost::property<boost::vertex_color_t, boost::default_color_type, Timing_Node> > Timing_Graph; //edge custom non serve piu.
 
 /*** 
@@ -70,7 +93,7 @@ typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS,bo
  * the lambda is needed: the graph is passed by copy and the runtime (aka child) information is lost. 
  * with this workaround the function pointer is modified with the function pointer of the child class, and when calling the father is calling the correct child one
 */
-
+#if 0
 class Custom_Vertex
 {
 public:
@@ -84,16 +107,8 @@ public:
     }
     
 };
-
-class Custom_Edge
-{
-public:
-    int to_port;
-    int from_port;
-};
-
-// non ha sensooooo: tanto i tdma sono vertex.incoming_edges(), i priority sono PRIORITY_ENUM_SIZE, i RR sono 1.
-// basta usare l'edge port come indicatore del priority e sono a posto. 
+#endif
+///Vertex rework try
 struct Scheduler_Slot {
     Priority pr;
     int id;
@@ -106,6 +121,148 @@ struct Port {
     int priority = DEFAULT_PRIORITY; // default no priority
 };
 
+class Common_Vertex_Data{
+        public:
+            std::string name;
+            Layer layer;
+            virtual void explode_component_timing(Timing_Graph& graph, std::map<std::string, std::map< int, std::string> >& components_map ) = 0;
+            virtual ~Common_Vertex_Data() {};
+        };
+        class First_Level_Vertex : public Common_Vertex_Data{
+        public:    
+            void explode_component_timing(Timing_Graph& graph, std::map<std::string, std::map< int, std::string> >& components_map ) ;
+            ~First_Level_Vertex() = default;
+        };
+
+        class Second_Level_Vertex : public Common_Vertex_Data{
+        public: 
+            void explode_component_timing(Timing_Graph& graph, std::map<std::string, std::map< int, std::string> >& components_map )  ;
+        };
+
+        class Third_Level_Vertex : public Common_Vertex_Data{
+        public:    
+            std::shared_ptr< std::map <int, Scheduler_Slot> > priority_slots; //serve ???? uno slot per ogni task, e all interno dello slot è segnato il livello di priorita. boh...
+            Component_Priority_Category OS_scheduler_type;
+            void explode_component_timing(Timing_Graph& graph, std::map<std::string, std::map< int, std::string> >& components_map )  ;
+        };
+
+        class Fourth_Level_Vertex : public Common_Vertex_Data{
+        public: 
+            std::shared_ptr< std::map <int, Port> > ports_map;
+            Component_Priority_Category component_priority_type;
+            Component_Type component_type;
+            void explode_component_timing(Timing_Graph& graph, std::map<std::string, std::map< int, std::string> >& components_map )  ;
+        };
+
+        class Fifth_Level_Vertex : public Common_Vertex_Data{
+        public: 
+            Fifth_Level_Vertex () {layer = Layer::PHYSICAL;}
+            void explode_component_timing(Timing_Graph& graph, std::map<std::string, std::map< int, std::string> >& components_map )  ;
+        };
+
+
+
+class Custom_Vertex
+{
+private:
+        std::shared_ptr<Common_Vertex_Data> ptr;
+public:
+        std::shared_ptr<First_Level_Vertex> get_shared_ptr_l1()
+        {
+            if (ptr->layer == FUNCTION)
+                return std::static_pointer_cast<First_Level_Vertex>(ptr);
+            else return nullptr;
+        }
+        std::shared_ptr<Second_Level_Vertex> get_shared_ptr_l2()
+        {
+            if (ptr->layer == TASK)
+                return std::static_pointer_cast<Second_Level_Vertex>(ptr);
+            else return nullptr;
+        }
+        std::shared_ptr<Third_Level_Vertex> get_shared_ptr_l3()
+        {
+             if (ptr->layer == CONTROLLER)
+                return std::static_pointer_cast<Third_Level_Vertex>(ptr);
+            else return nullptr;
+        }
+        std::shared_ptr<Fourth_Level_Vertex> get_shared_ptr_l4()
+        {
+             if (ptr->layer == RESOURCE)
+                return std::static_pointer_cast<Fourth_Level_Vertex>(ptr);
+            else return nullptr;
+        }
+        std::shared_ptr<Fifth_Level_Vertex> get_shared_ptr_l5(){
+             if (ptr->layer == PHYSICAL)
+                return std::static_pointer_cast<Fifth_Level_Vertex>(ptr);
+            else return nullptr;
+        }
+        
+        inline void explode_component_timing (Timing_Graph& graph, std::map<std::string, std::map< int, std::string> >& components_map )
+        {
+            ptr->explode_component_timing( graph, components_map );
+        }
+        void create_L1_child(std::string name){
+                ptr.reset(new First_Level_Vertex());
+                ptr->layer = FUNCTION;
+                ptr->name = name;
+        }
+        void create_L2_child(std::string name){
+                ptr.reset(new Second_Level_Vertex());
+                ptr->layer = TASK;
+                ptr->name = name;
+        }
+        void create_L3_child(std::string name,std::shared_ptr< std::map <int, Scheduler_Slot> > priority_slots,Component_Priority_Category OS_scheduler_type){
+                ptr.reset(new Third_Level_Vertex);
+                std::shared_ptr<Third_Level_Vertex> real_ptr = std::static_pointer_cast<Third_Level_Vertex>(ptr);
+                real_ptr->layer = CONTROLLER;
+                real_ptr->name = name;
+                real_ptr->priority_slots = priority_slots;
+                real_ptr->OS_scheduler_type = OS_scheduler_type;
+        }
+        void create_L4_child(std::string name, std::shared_ptr< std::map< int, Port > > ports, Component_Type type, Component_Priority_Category handling){
+                ptr.reset(new Fourth_Level_Vertex);
+                std::shared_ptr<Fourth_Level_Vertex> real_ptr = std::static_pointer_cast<Fourth_Level_Vertex>(ptr);
+                real_ptr->layer = RESOURCE;
+                real_ptr->name = name;
+                real_ptr->component_priority_type=handling;
+                real_ptr->ports_map=ports;
+                real_ptr->component_type=type;
+        }
+        void create_L5_child(std::string name){
+                ptr.reset(new Fifth_Level_Vertex());
+                ptr->layer = PHYSICAL;
+                ptr->name = name;
+        }
+        std::string get_name(){
+            return ptr?ptr->name:"no_component";
+        }
+        Layer get_layer(){
+            return ptr?ptr->layer:LAYER_ERROR;
+        }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+class Custom_Edge
+{
+public:
+    int to_port;
+    int from_port;
+};
+
+// non ha sensooooo: tanto i tdma sono vertex.incoming_edges(), i priority sono PRIORITY_ENUM_SIZE, i RR sono 1.
+// basta usare l'edge port come indicatore del priority e sono a posto. 
+
+#if 0
 class First_Level_Vertex : public Custom_Vertex{
 public:    
     void explode_component_timing(Timing_Graph& graph, std::map<std::string, std::map< int, std::string> >& components_map ) const;
@@ -119,14 +276,14 @@ public:
 
 class Third_Level_Vertex : public Custom_Vertex{
 public:    
-    std::map <int, Scheduler_Slot> priority_slots; //serve ???? uno slot per ogni task, e all interno dello slot è segnato il livello di priorita. boh...
+    std::shared_ptr< std::map <int, Scheduler_Slot> > priority_slots; //serve ???? uno slot per ogni task, e all interno dello slot è segnato il livello di priorita. boh...
     Component_Priority_Category OS_scheduler_type;
     void explode_component_timing(Timing_Graph& graph, std::map<std::string, std::map< int, std::string> >& components_map ) const ;
 };
 
 class Fourth_Level_Vertex : public Custom_Vertex{
 public: 
-    std::map <int, Port> ports_map;
+    std::shared_ptr< std::map <int, Port> > ports_map;
     Component_Priority_Category component_priority_type;
     Component_Type component_type;
     void explode_component_timing(Timing_Graph& graph, std::map<std::string, std::map< int, std::string> >& components_map ) const ;
@@ -137,7 +294,7 @@ public:
     Fifth_Level_Vertex () {layer = Layer::PHYSICAL;}
     void explode_component_timing(Timing_Graph& graph, std::map<std::string, std::map< int, std::string> >& components_map ) const ;
 };
-
+#endif
 
 
 

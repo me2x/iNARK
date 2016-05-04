@@ -3,11 +3,13 @@
 #include <boost/graph/breadth_first_search.hpp>
 #include <boost/graph/copy.hpp>
 #include "graph_common.hpp"
+#include <memory>
 
 class timing_internal_graph
        {
 public:
-    timing_internal_graph (Source_Graph g);
+    timing_internal_graph ();
+    void build_graph (std::shared_ptr<Source_Graph> g);
     bool search_path (std::string from, std::string to, Layer l);
     //void search_interfered_nodes (std::string source, bool reverse);
 private:

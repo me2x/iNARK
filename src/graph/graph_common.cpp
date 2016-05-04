@@ -1,4 +1,137 @@
 #include "graph_common.hpp"
+
+
+Layer commons::int_to_Layer(int i){
+    switch(i)
+    {
+    case 1:
+        return FUNCTION;
+        break;
+    case 2:
+        return TASK;
+        break;
+    case 3:
+        return CONTROLLER;
+        break;
+    case 4:
+        return RESOURCE;
+        break;
+    case 5:
+        return PHYSICAL;
+        break;
+    default:
+        return LAYER_ERROR;
+        break;
+    }
+}
+Priority commons::int_to_Priority(int i){
+    switch(i)
+    {
+    case 1:
+        return NO_PRIORITY;
+        break;
+    case 2:
+        return MISSION_CRITICAL;
+        break;
+    case 3:
+        return SAFETY_CRITICAL;
+        break;
+    default:
+        return PRIORITY_ENUM_SIZE;
+        break;
+    }
+}
+std::string commons::Layer_to_String(Layer l){
+    switch(l)
+    {
+    case FUNCTION:
+        return "function";
+        break;
+    case TASK:
+        return "task" ;
+        break;
+    case CONTROLLER:
+        return "controller";
+        break;
+    case RESOURCE:
+        return "resource";
+        break;
+    case PHYSICAL:
+        return "physical";
+        break;
+    default:
+        return "error";
+        break;
+    }
+}
+Component_Type commons::int_To_Type(int i){
+    switch(i)
+    {
+    case 1:
+        return PROCESSOR;break;
+
+    case 2:
+        return BUS;break;
+
+    case 3:
+        return BRIDGE;break;
+
+    case 4:
+        return PERIPHERAL;break;
+        
+    case 5:
+        return MEMORY;break;
+
+    default:
+        return TYPE_ERROR;break;
+    }
+}
+Component_Priority_Category commons::int_To_Priority_Handler(int i){
+switch(i)
+    {
+    case 1:
+        return ROUND_ROBIN;break;
+
+    case 2:
+        return PRIORITY;break;
+
+    case 3:
+        return TDMA;break;
+
+    default:
+        return PRIORITY_CATEGORY_ERROR;break;
+    }
+}
+
+std::string commons::get_search_layer_names(Search_Layers l)
+{
+    switch (l)
+    {
+        case S_CONTROLLER:
+            return "Controller";break;
+        case S_RESOURCE:
+            return "Resource";break;
+        case S_PHYSICAL:
+            return "Physical";break;
+        default:
+            return "Error"; break;
+    }
+}
+
+std::string commons::get_search_type_name(Search_Types t)
+{
+    switch (t)
+    {
+        case TIMING:
+            return "Timing"; break;
+        case PROVA:
+            return "Stocazzo";break;
+        default:
+            return "Error"; break;
+    }
+}
+
+
 /*Custom_Vertex::Custom_Vertex(const Custom_Vertex& CV)
 {
     switch (CV.layer)
@@ -69,7 +202,7 @@
 
 */
 
-void First_Level_Vertex::explode_component_timing(Timing_Graph& graph, std::map<std::string, std::map< int, std::string> >& components_map ) const {
+void First_Level_Vertex::explode_component_timing(Timing_Graph& graph, std::map<std::string, std::map< int, std::string> >& components_map )  {
     PRINT_DEBUG("timing first level vertex building");
     timing_vertex_t vt = boost::add_vertex(graph);
     PRINT_DEBUG("vertex added");
@@ -80,7 +213,7 @@ void First_Level_Vertex::explode_component_timing(Timing_Graph& graph, std::map<
     
 }
 
-void Second_Level_Vertex::explode_component_timing(Timing_Graph& graph, std::map<std::string, std::map< int, std::string> >& components_map ) const {
+void Second_Level_Vertex::explode_component_timing(Timing_Graph& graph, std::map<std::string, std::map< int, std::string> >& components_map )  {
     timing_vertex_t vt = boost::add_vertex(graph);
     
     graph[vt].layer = this->layer;
@@ -88,7 +221,7 @@ void Second_Level_Vertex::explode_component_timing(Timing_Graph& graph, std::map
     graph[vt].name = this->name;
 }
 
-void Third_Level_Vertex::explode_component_timing(Timing_Graph& graph, std::map< std::string, std::map< int, std::string > >& components_map) const
+void Third_Level_Vertex::explode_component_timing(Timing_Graph& graph, std::map< std::string, std::map< int, std::string > >& components_map) 
 {
     switch (this->OS_scheduler_type)
     {
@@ -123,7 +256,7 @@ void Third_Level_Vertex::explode_component_timing(Timing_Graph& graph, std::map<
         case TDMA:
         {
             std::map< int, std::string > tmp;    //port, new vtx name, inner map of the components_map parameter
-            for (std::map<int, Scheduler_Slot>::const_iterator iter = this->priority_slots.begin();iter != this->priority_slots.end() ;++iter)
+            for (std::map<int, Scheduler_Slot>::const_iterator iter = this->priority_slots->begin();iter != this->priority_slots->end() ;++iter)
             {
                 timing_vertex_t vt =  boost::add_vertex(graph);
                 graph[vt].layer=this->layer;
@@ -146,7 +279,7 @@ void Third_Level_Vertex::explode_component_timing(Timing_Graph& graph, std::map<
 
 }
 
-void Fourth_Level_Vertex::explode_component_timing(Timing_Graph& graph, std::map< std::string, std::map< int, std::string > >& components_map) const
+void Fourth_Level_Vertex::explode_component_timing(Timing_Graph& graph, std::map< std::string, std::map< int, std::string > >& components_map) 
 {
     //questa è grama.
     //switch su tipo, all interno distinzione master/slave.
@@ -157,7 +290,7 @@ void Fourth_Level_Vertex::explode_component_timing(Timing_Graph& graph, std::map
         {
             std::map< int, std::string > tmp;    //port, new vtx name, inner map of the components_map parameter
             std::vector<timing_vertex_t> masters,slaves;
-            for (std::map<int, Port>::const_iterator iter = this->ports_map.begin();iter != this->ports_map.end() ;++iter)
+            for (std::map<int, Port>::const_iterator iter = this->ports_map->begin();iter != this->ports_map->end() ;++iter)
             {
                 
                 if ((*iter).second.is_master)
@@ -216,8 +349,8 @@ void Fourth_Level_Vertex::explode_component_timing(Timing_Graph& graph, std::map
             std::map< int, std::string > tmp;    //port, new vtx name, inner map of the components_map parameter
             std::map<int,std::vector< timing_vertex_t> > priority_map; //int is priority, will contain all vertex of that priority
             std::vector<timing_vertex_t> slaves;
-            PRINT_DEBUG("4th level priority: portsmap size is: "+boost::lexical_cast<std::string>(this->ports_map.size()));
-            for (std::map<int, Port>::const_iterator iter = this->ports_map.begin();iter != this->ports_map.end() ;++iter)
+            PRINT_DEBUG("4th level priority: portsmap size is: "+boost::lexical_cast<std::string>(this->ports_map->size()));
+            for (std::map<int, Port>::const_iterator iter = this->ports_map->begin();iter != this->ports_map->end() ;++iter)
             {
                 PRINT_DEBUG("4th level priority: iterating on port: "+boost::lexical_cast<std::string>((*iter).first));
                 if ((*iter).second.is_master)
@@ -311,7 +444,7 @@ void Fourth_Level_Vertex::explode_component_timing(Timing_Graph& graph, std::map
         {
             std::map< int, std::string > tmp;    //port, new vtx name, inner map of the components_map parameter
             std::vector<timing_vertex_t> masters,slaves;
-            for (std::map<int, Port>::const_iterator iter = this->ports_map.begin();iter != this->ports_map.end() ;++iter)
+            for (std::map<int, Port>::const_iterator iter = this->ports_map->begin();iter != this->ports_map->end() ;++iter)
             {
                 
                 if ((*iter).second.is_master)
@@ -367,7 +500,7 @@ void Fourth_Level_Vertex::explode_component_timing(Timing_Graph& graph, std::map
 
 }
 
-void Fifth_Level_Vertex::explode_component_timing(Timing_Graph& graph, std::map< std::string, std::map< int, std::string > >& components_map) const
+void Fifth_Level_Vertex::explode_component_timing(Timing_Graph& graph, std::map< std::string, std::map< int, std::string > >& components_map) 
 {
     timing_vertex_t vt = boost::add_vertex(graph);
     graph[vt].name = this->name;
