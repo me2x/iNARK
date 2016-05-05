@@ -84,9 +84,11 @@ public:
 private:
   const Timing_Graph* graph_m;
 };
-
+//need to set the guard no double os.
 struct masters_task_research_visitor :public boost::default_dfs_visitor{
   std::vector<std::string>* discovered_tasks;
+  timing_vertex_t curr_OS = Timing_Graph::null_vertex();
+    std::map<timing_vertex_t, std::set<timing_vertex_t>> to_be_whited_on_callback ;
   masters_task_research_visitor(std::vector<std::string>& discovered)
   {
       discovered_tasks = &discovered;
@@ -100,31 +102,56 @@ struct masters_task_research_visitor :public boost::default_dfs_visitor{
             if(g[v].layer == Layer::TASK)
                 discovered_tasks->push_back(g[v].name); //o qualcosa del genere
             //vertex_coloring[v] = boost::default_color_type::black_color;
+            else if (g[v].layer == Layer::CONTROLLER)
+            {
+                if (curr_OS == Timing_Graph::null_vertex()) //primo OS.
+                {
+                    std::set<timing_vertex_t> tmp;
+                    to_be_whited_on_callback.insert(std::make_pair(v,tmp));
+                    curr_OS = v;
+                }
+            }
             boost::default_dfs_visitor::discover_vertex(v,g);
         }
-        
-    /*template<typename Vertex, typename Graph>
+    template<typename Edge, typename Graph> 
+        void examine_edge(Edge e, Graph const& g) 
+        {
+#ifdef DEBUG
+            std::cout<<"exploration_from_interferes_with_to_visitor: examine edge "<< g[boost::source<>(e,g)].name << "-" <<g[boost::target<>(e,g)].name <<std::endl;
+#endif          
+            if (g[boost::target<>(e,g)].layer == CONTROLLER && curr_OS != Timing_Graph::null_vertex())
+            {
+                if (vertex_coloring[boost::target<>(e,g)] == boost::default_color_type::white_color)
+                {
+                    vertex_coloring[boost::target<>(e,g)] =  boost::default_color_type::black_color;
+                    to_be_whited_on_callback.at(curr_OS).insert(boost::target<>(e,g));
+                }
+                
+            }
+            boost::default_dfs_visitor::examine_edge(e,g);
+        }
+    template<typename Vertex, typename Graph>
         void finish_vertex(Vertex v, Graph const& g) {
-            std::cout<<"calling finish_vertex"<< v <<std::endl;
-            default_color_type color = vertex_coloring[v];
-            (void) color; // suppress unused warning
-            vertex_coloring[v] = boost::default_color_type::red_color;
+            PRINT_DEBUG("calling exploration_from_interferes_with_to_visitor finish vertex"<< g[v].name );
+            if (to_be_whited_on_callback.count(v) != 0)
+            {
+                PRINT_DEBUG("exploration_from_interferes_with_to_visitor: finish vertex found the node inside the to_be_whited_on_callback map " +g[v].name );
+                for (auto vtx: to_be_whited_on_callback.at(v))
+                {
+                    vertex_coloring[vtx] = boost::default_color_type::white_color;
+                    PRINT_DEBUG("exploration_from_interferes_with_to_visitor: whited node " +g[vtx].name );
+                }
+                PRINT_DEBUG("exploration_from_interferes_with_to_visitor: size of the map before remove is: " +boost::lexical_cast<std::string>(to_be_whited_on_callback.size()));
+                to_be_whited_on_callback.erase(v);
+                PRINT_DEBUG("exploration_from_interferes_with_to_visitor: size of the map after remove is: " +boost::lexical_cast<std::string>(to_be_whited_on_callback.size()));
+            }
+            if (v == curr_OS)
+            {
+                curr_OS = Timing_Graph::null_vertex();
+            }
             boost::default_dfs_visitor::finish_vertex(v,g);
         }
-        */
-     /*template<typename Vertex, typename Graph>
-        void start_vertex(Vertex v, Graph const& g) {
-            std::cout<<"calling start_vertex"<< v <<std::endl;
-            boost::default_dfs_visitor::start_vertex(v,g);
-        }*/    
-     /*       template<typename Vertex, typename Graph>
-        void initialize_vertex(Vertex v, Graph const& g) {
-            std::cout<<"calling initialize_vertex"<< v <<std::endl;
-            boost::default_dfs_visitor::initialize_vertex(v,g);
-        } 
-    */
-  
-  
+        
 };
 
 
