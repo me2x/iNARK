@@ -381,6 +381,8 @@ struct exploration_from_interferes_with_to_visitor :public boost::default_dfs_vi
             if (v == curr_slave)
             {
                 PRINT_DEBUG("exploration_from_interferes_with_to_visitor: curr_slave found, stack size before is: " +boost::lexical_cast<std::string>(slaves_stack.size()));
+                if (slave_master.count(curr_slave)!= 0)
+                    slave_master.erase(curr_slave);
                 slaves_stack.pop_back();
                 curr_slave = slaves_stack.back();
                 PRINT_DEBUG("exploration_from_interferes_with_to_visitor: curr_slave found, stack size after is: " +boost::lexical_cast<std::string>(slaves_stack.size()));
