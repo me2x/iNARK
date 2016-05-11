@@ -35,10 +35,32 @@ configure_file (
 # so that we will find TutorialConfig.h
 include_directories("${PROJECT_BINARY_DIR}")
 include_directories ("${PROJECT_SOURCE_DIR}")
+
+
+include(ExternalProject)
+
+set_directory_properties(PROPERTIES EP_PREFIX ${CMAKE_SOURCE_DIR}/src/commons) #folder where the project will be imported. 
+
+ExternalProject_Add(demo
+  GIT_REPOSITORY https://github.com/me2x/iNARK_Commons.git
+  GIT_TAG master
+  UPDATE_COMMAND ""
+  INSTALL_COMMAND ""
+)
+
+ExternalProject_Get_Property(demo source_dir) #gets automatically the main directory of the imported project
+include_directories(${source_dir})
+message(${source_dir})
+
+
+ExternalProject_Get_Property(demo binary_dir) #automatically gets the build directory
+message(${binary_dir})
+
+
 add_subdirectory (graph)
 
 add_executable(iNARK iNARK.cpp)
 
 
-target_link_libraries( iNARK graph)
+target_link_libraries( iNARK graph ${binary_dir}/libinark_commons.a)
 

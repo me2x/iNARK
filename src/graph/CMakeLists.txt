@@ -20,5 +20,6 @@ debug_msg_handler.hpp
 )
 
 add_library (graph ${GRAPH_SRCS})
-
+add_dependencies(graph demo) #force the dependency solution
+target_link_libraries( graph ${binary_dir}/libinark_commons.a)#linking is performed here. the name is the one in the CMakeLIst of the project.
 target_link_libraries( graph ${Boost_LIBRARIES})

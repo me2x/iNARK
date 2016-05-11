@@ -3,3 +3,5 @@ build/
 iNARK.kdev4
 *swp
 .test/
+src/commons/
+
