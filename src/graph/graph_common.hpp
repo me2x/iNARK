@@ -13,51 +13,9 @@
 #define NO_PORT -1
 #define DEFAULT_PRIORITY 0
 
-enum Layer{
-    FUNCTION,
-    TASK,
-    CONTROLLER,
-    RESOURCE,
-    PHYSICAL,
-    LAYER_ERROR
-};
-
-enum Priority{
-    NO_PRIORITY,
-    MISSION_CRITICAL,
-    SAFETY_CRITICAL,
-    PRIORITY_ENUM_SIZE
-};
-
-enum Component_Priority_Category{
-    ROUND_ROBIN,
-    PRIORITY,
-    TDMA,
-    PRIORITY_CATEGORY_ERROR
-};
-
-enum Component_Type{
-  PROCESSOR,
-  BUS,
-  BRIDGE,
-  PERIPHERAL,
-  MEMORY,
-  NOT_SPECIFIED,
-  TYPE_ERROR
-};
-//these two enums must match with the ones in the graphical program. they are separated because i didn't want to have nothing in common between the two programs, both must be able to standalone.
-
 class Custom_Vertex;
 class Custom_Edge;
 
-namespace commons{
-Layer int_to_Layer(int i);
-Priority int_to_Priority(int i);
-std::string Layer_to_String(Layer l);
-Component_Type int_To_Type(int i);
-Component_Priority_Category int_To_Priority_Handler(int i);
-    
-}
 //timing node cannot be forward declared because of graph library: incomplete base
 class Timing_Node{// subclass removed: when doing the search the graph is passed by copy and the runtime properties like subclasses are lost.
 public:
