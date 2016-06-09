@@ -57,7 +57,7 @@ ExternalProject_Get_Property(demo binary_dir) #automatically gets the build dire
 message(${binary_dir})
 
 
-add_subdirectory (graph)
+add_subdirectory (graph)# internal folder will inherit the variables so the common library can be linked. it is not true the opposite, whatever is imported inside is not valid here.
 
 add_executable(iNARK iNARK.cpp)
 
