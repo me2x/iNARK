@@ -1,4 +1,12 @@
-boost: apt-get install libboost all o quel che l'è // opensuse vuole boost-devel. 
-//modificato boost dir, da controllare che vada su mint.
 
-cmake: -DDEBUG:BOOL=ON/OFF a seconda se si vogliono le print di debug o meno
+iNARK uses CMake for the creation of the makefiles. it has to be installed if not present version 3.0.2 minimum.
+
+
+boost libraries are needed. 
+to install on linux:
+ubuntu-like: libboost-all
+opensuse: boost-devel
+
+cmake: 	-DDEBUG:BOOL=ON/OFF if debug prints are required or not
+	-DTIME:BOOL=ON/OFF if measurements of the execution time are required
+	-DSEM_CHECK:BOOL=ON/OFF if semantical check on the graph have to be performed or not. default not (the input is supposed to be correct, and the program had to be as fast as possible)

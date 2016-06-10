@@ -13,7 +13,7 @@ if (SEM_CHECK)
 else(SEM_CHECK)
     set (SEM_CHECK_BOOL "false")
 endif (SEM_CHECK)
-#copiato non ho idea del funzionamento
+#check on c++ version supported
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
 CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
