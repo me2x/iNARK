@@ -49,7 +49,7 @@ bool source_graph::create_graph_from_xml(std::string xml)
                     else
                     {
                         PRINT_DEBUG("error no priority handling in os");
-                        OS_scheduler_type= PRIORITY_CATEGORY_ERROR;
+                        OS_scheduler_type= HANDLING_SIZE;
                         //TODO error handling
                     }
                     std::shared_ptr< std::map<int,Scheduler_Slot> > priority_slots(new std::map<int,Scheduler_Slot>());
@@ -95,7 +95,7 @@ bool source_graph::create_graph_from_xml(std::string xml)
                     else
                     {
                         PRINT_DEBUG("error no type in component: "+ v.second.get_child("name").get_value<std::string>());
-                        component_type = TYPE_ERROR;
+                        component_type = TYPE_SIZE;
                         //TODO error handling
                     }
                     Component_Priority_Category component_priority_type;

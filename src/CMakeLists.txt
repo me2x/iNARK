@@ -43,8 +43,6 @@ set_directory_properties(PROPERTIES EP_PREFIX ${CMAKE_SOURCE_DIR}/src/commons) #
 
 ExternalProject_Add(demo
   GIT_REPOSITORY https://github.com/me2x/iNARK_Commons.git
-  GIT_TAG master
-  UPDATE_COMMAND ""
   INSTALL_COMMAND ""
 )
 

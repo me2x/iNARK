@@ -31,6 +31,7 @@ void timing_internal_graph::build_graph(std::shared_ptr<Source_Graph> g){
         timing_vertex_t new_source, new_target;
 	PRINT_DEBUG("the source component is: "+(*g)[old_graph_source].get_name()+" and its port is: "+boost::lexical_cast<std::string>((*g)[*ei].from_port));
         PRINT_DEBUG("the target component is: "+(*g)[old_graph_target].get_name()+" and its port is: "+boost::lexical_cast<std::string>((*g)[*ei].to_port));
+        PRINT_DEBUG("the case is: "+boost::lexical_cast<std::string>((*g)[old_graph_source].get_layer()+(*g)[old_graph_target].get_layer()));
         //mancano 4 to 5: da moltiplicare.
         //all edges are in 1:1 between the physical graph to the internal representation, exept the edges from l4 to l5. 
         //OS to processor have to be multiplied
@@ -182,6 +183,7 @@ void timing_internal_graph::build_graph(std::shared_ptr<Source_Graph> g){
                 bool l4_is_source = (*g)[old_graph_source].get_layer() == RESOURCE;
                 if (components_map.count((*g)[l4_is_source?old_graph_target:old_graph_source].get_name()) != 0)
                 {
+                    PRINT_DEBUG("edge creation: inside switch, case 5, if branch");
                     for (std::map<int,std::string>::iterator l3_to_l4_iter = components_map.at((*g)[l4_is_source?old_graph_target:old_graph_source].get_name()).begin();l3_to_l4_iter != components_map.at((*g)[l4_is_source?old_graph_target:old_graph_source].get_name()).end();++l3_to_l4_iter)
                     {
                         PRINT_DEBUG("edge creation: components map at: "+(*g)[l4_is_source?old_graph_target:old_graph_source].get_name()+ " size is: "+boost::lexical_cast<std::string>(components_map.at((*g)[l4_is_source?old_graph_target:old_graph_source].get_name()).size()));
@@ -200,6 +202,7 @@ void timing_internal_graph::build_graph(std::shared_ptr<Source_Graph> g){
                 }
                 else
                 {
+                    PRINT_DEBUG("edge creation: inside switch, case 5, else branch");
                     bool l4_is_source = (*g)[old_graph_source].get_layer() == RESOURCE;
                     new_source = get_node_reference((*g)[old_graph_source].get_name()+(l4_is_source?"$$1":""));
                     new_target = get_node_reference((*g)[old_graph_target].get_name()+(l4_is_source?"":"$$1"));
@@ -244,7 +247,7 @@ void timing_internal_graph::build_graph(std::shared_ptr<Source_Graph> g){
             
         }
 
-
+        PRINT_DEBUG("edge creation end");
     }
  
 

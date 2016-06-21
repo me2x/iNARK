@@ -264,8 +264,10 @@ void Fourth_Level_Vertex::explode_component_timing(Timing_Graph& graph, std::map
                 }
             }
             //internal edges creation
+            PRINT_DEBUG("ports created, internal edges creation start");
             bool flag = false;
             timing_vertex_t tmp_vtx;
+            PRINT_DEBUG("priority map size is: "+boost::lexical_cast<std::string>(priority_map.size()));
             for (std::map<int,std::vector< timing_vertex_t> >::reverse_iterator extern_iter = priority_map.rbegin();extern_iter != priority_map.rend();++extern_iter)
             {
                 PRINT_DEBUG("4th level priority: internal edges creation. priority is: "+boost::lexical_cast<std::string>((*extern_iter).first));
@@ -305,10 +307,14 @@ void Fourth_Level_Vertex::explode_component_timing(Timing_Graph& graph, std::map
                 flag = true;
                 
             }
-            for(std::vector<timing_vertex_t>::iterator slave_iter = slaves.begin(); slave_iter != slaves.end(); ++slave_iter)
+            
+            if (flag)
             {
-                timing_edge_t e; bool b;
-                boost::tie(e,b) = boost::add_edge(tmp_vtx,*slave_iter,graph); //monodirectional masters to slaves
+                for(std::vector<timing_vertex_t>::iterator slave_iter = slaves.begin(); slave_iter != slaves.end(); ++slave_iter)
+                {
+                    timing_edge_t e; bool b;
+                    boost::tie(e,b) = boost::add_edge(tmp_vtx,*slave_iter,graph); //monodirectional masters to slaves
+                }
             }
             components_map.insert(std::make_pair(this->name, tmp));  
             break;
@@ -363,7 +369,7 @@ void Fourth_Level_Vertex::explode_component_timing(Timing_Graph& graph, std::map
         }
         default:
         {
-            PRINT_DEBUG("error in transformation of layer 3: no priority type compatible");
+            PRINT_DEBUG("error in transformation of layer 4: no priority type compatible");
             break;
             //TODO error handling
         }
@@ -371,6 +377,7 @@ void Fourth_Level_Vertex::explode_component_timing(Timing_Graph& graph, std::map
         
     }
 
+    PRINT_DEBUG("L4 component explode finish");
 }
 
 void Fifth_Level_Vertex::explode_component_timing(Timing_Graph& graph, std::map< std::string, std::map< int, std::string > >& components_map) 
