@@ -107,23 +107,33 @@ void Third_Level_Vertex::explode_component_timing(Timing_Graph& graph, std::map<
         }
         case PRIORITY:
         {
-            timing_vertex_t vtx_vect[PRIORITY_ENUM_SIZE];
-            std::map< int, std::string > tmp;    //port, new vtx name, inner map of the components_map parameter
-            for(int i = 0; i < PRIORITY_ENUM_SIZE; i++) 
+            std::map< int, timing_vertex_t > tmp;    //pr, new vtx name, inner map of the components_map parameter. 
+            std::map< int, std::string > priority_to_name;
+            for(std::map <int, Scheduler_Slot>::iterator it = this->priority_slots->begin(); it != this->priority_slots->end();++it) 
             {
-                timing_vertex_t vt =  boost::add_vertex(graph);
-                graph[vt].layer=this->layer;
-                graph[vt].name=this->name+"$$"+boost::lexical_cast<std::string>(i);
-                vtx_vect[i] = vt;
-                tmp.insert(std::make_pair(i,graph[vt].name));
-                PRINT_DEBUG(graph[vt].name);
-            if (i!= 0)
+                if (tmp.count(it->second.pr) == 0)
+                {
+                    timing_vertex_t vt =  boost::add_vertex(graph);
+                    graph[vt].layer=this->layer;
+                    graph[vt].name=this->name+"$$"+boost::lexical_cast<std::string>(it->second.pr);
+                    tmp.insert(std::make_pair(it->second.pr,vt));
+                    priority_to_name.insert(std::make_pair(it->second.pr,graph[vt].name));
+                    PRINT_DEBUG(graph[vt].name);
+                }
+            }
+            std::map< int,timing_vertex_t >::iterator it, it2;
+            it = tmp.begin();
+            it2 = it;
+            it2++;
+            //add arrows.
+            for ( ;it2 != tmp.end();++it2) 
             {
                 timing_edge_t e; bool b;
-                boost::tie(e,b) = boost::add_edge(vt,vtx_vect[i-1],graph);
+                boost::tie(e,b) = boost::add_edge(it2->second,it->second,graph);
+                it = it2;
             }
-          }
-        components_map.insert(std::make_pair(this->name, tmp));  
+            
+        components_map.insert(std::make_pair(this->name, priority_to_name));  
         break;
         }
         case TDMA:
@@ -308,7 +318,7 @@ void Fourth_Level_Vertex::explode_component_timing(Timing_Graph& graph, std::map
                 
             }
             
-            if (flag)
+            if (flag) //had to be skipd if only one slave is present.
             {
                 for(std::vector<timing_vertex_t>::iterator slave_iter = slaves.begin(); slave_iter != slaves.end(); ++slave_iter)
                 {

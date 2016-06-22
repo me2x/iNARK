@@ -64,7 +64,7 @@ void timing_internal_graph::build_graph(std::shared_ptr<Source_Graph> g){
                         case PRIORITY:
                         {
                             //get slot, read priority, get correct component: 0 for no priority, 1 for mission critical, 2 for safety critical.
-                            Priority pr = vtx->priority_slots->at((*g)[*ei].to_port).pr;
+                            int pr = vtx->priority_slots->at((*g)[*ei].to_port).pr;
                             new_source = get_node_reference((*g)[old_graph_source].get_name());
                             new_target = get_node_reference(components_map.at((*g)[old_graph_target].get_name()).at(pr));
                             boost::tie(e,b) = boost::add_edge(new_source,new_target,ig);
@@ -99,7 +99,7 @@ void timing_internal_graph::build_graph(std::shared_ptr<Source_Graph> g){
                         case PRIORITY:
                         {
                             //get slot, read priority, get correct component: 0 for no priority, 1 for mission critical, 2 for safety critical.
-                            Priority pr = vtx->priority_slots->at((*g)[*ei].from_port).pr;
+                            int pr = vtx->priority_slots->at((*g)[*ei].from_port).pr;
                             
                             PRINT_DEBUG("the priority of port "+boost::lexical_cast<std::string>((*g)[*ei].from_port)+"is"+boost::lexical_cast<std::string>(pr));
                             new_target = get_node_reference((*g)[old_graph_target].get_name());

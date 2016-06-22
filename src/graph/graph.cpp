@@ -57,7 +57,7 @@ bool source_graph::create_graph_from_xml(std::string xml)
                         {
                             Scheduler_Slot s;
                             s.id = i_v.second.get_child("id").get_value<int>();
-                            s.pr = i_v.second.get_child_optional("priority")?int_to_Priority(i_v.second.get_child("priority").get_value<int>()):Priority::NO_PRIORITY;
+                            s.pr = i_v.second.get_child_optional("priority")?i_v.second.get_child("priority").get_value<int>():DEFAULT_PRIORITY;
                             priority_slots->insert(std::make_pair(i_v.second.get_child("id").get_value<int>(),s));
                         }
                     std::string name = (v.second.get_child("name")).get_value<std::string>();   

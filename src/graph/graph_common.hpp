@@ -57,7 +57,7 @@ public:
 #endif
 ///Vertex rework try
 struct Scheduler_Slot {
-    Priority pr;
+    int pr;
     int id;
 };
 
