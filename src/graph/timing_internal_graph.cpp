@@ -191,7 +191,7 @@ void timing_internal_graph::build_graph(std::shared_ptr<Source_Graph> g){
                         if (l4_is_source)
                         {
                             PRINT_DEBUG("edge creation: old graph source name is: "+(*g)[old_graph_source].get_name() +"but the retrieved node is: "+ig[new_source].name);
-                            PRINT_DEBUG("the result of get node reference is: "+ boost::lexical_cast<std::string>(get_node_reference((*g)[old_graph_source].get_name())));
+                            //PRINT_DEBUG("the result of get node reference is: "+ boost::lexical_cast<std::string>(get_node_reference((*g)[old_graph_source].get_name())));
                         }
                         
                         new_target = get_node_reference(l4_is_source? (*l3_to_l4_iter).second:(*g)[old_graph_target].get_name()+"$$1"); //the $$1 is added only to processors.
@@ -358,6 +358,7 @@ timing_vertex_t timing_internal_graph::get_node_reference(std::string str)
     if (ig[*vi].name == str)
       return *vi;
   }
+  throw std::runtime_error ("node "+str+" does not exist in the graph");
   return Timing_Graph::null_vertex();
 }
 bool timing_internal_graph::search_path(std::string from, std::string to, Layer l)

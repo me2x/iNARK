@@ -85,7 +85,7 @@ bool source_graph::create_graph_from_xml(std::string xml)
                     {
                         PRINT_DEBUG("error no ports in a component");
                         //TODO error handling
-                        throw std::runtime_error("input error: layer 4 component without ports");
+                        throw std::runtime_error("input error: layer 4 component without ports: "+v.second.get_child("name").get_value<std::string>());
                     }
                     Component_Type component_type;
                     if(v.second.get_child_optional("type"))
@@ -102,6 +102,8 @@ bool source_graph::create_graph_from_xml(std::string xml)
                     if(v.second.get_child_optional("priority_handling"))
                     {
                         component_priority_type=int_To_Priority_Handler(v.second.get_child("priority_handling").get_value<int>());
+                        if (component_priority_type == Component_Priority_Category::HANDLING_SIZE)
+                            throw std::runtime_error("priority handling in 4th level has a wrong input value for component: "+ v.second.get_child("name").get_value<std::string>());
                     }
                     else throw std::runtime_error("no priority handling in 4th level");
                     
@@ -170,7 +172,7 @@ bool source_graph::create_graph_from_xml(std::string xml)
 #if 0     
           std::ofstream myfile;
   myfile.open ("/home/emanuele/Documents/tmp_graph/source_graph.dot");
-  boost::write_graphviz(myfile, *local_graph,make_vertex_writer(boost::get( &Custom_Vertex::layer, *local_graph),boost::get (&get_name(), *local_graph))
+  boost::write_graphviz(myfile, *local_graph,make_vertex_writer(boost::get( &Custom_Vertex::lay, *local_graph),boost::get (&Custom_Vertex::name, *local_graph))
       ,make_edge_writer(boost::get(&Custom_Edge::from_port,*local_graph),boost::get(&Custom_Edge::to_port,*local_graph))
       //boost::make_label_writer(boost::get(&Custom_Edge::priority,local_graph))
 );

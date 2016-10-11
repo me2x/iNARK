@@ -76,6 +76,7 @@ private:
   const Timing_Graph* graph_m;
 };
 
+//needed for boost reasons, doesn't filter any edge: to filter on vertices a filter for edges has to be provided.
 class true_edge_predicate {
 public:
   true_edge_predicate() : graph_m(0) {}
@@ -185,6 +186,7 @@ struct masters_task_setter_visitor :public boost::default_dfs_visitor{
                 PRINT_DEBUG("masters_task_setter_visitor: adding node: "+ g[v].name);
                 if(g[v].associate_port_name != "")
                 {
+                    PRINT_DEBUG("crashes here");
                     vertex_coloring[reference_map->at(g[v].associate_port_name)] = boost::default_color_type::black_color; ///vero problema. 
                     lockers.insert(v);
                     PRINT_DEBUG("masters_task_setter_visitor: locking");

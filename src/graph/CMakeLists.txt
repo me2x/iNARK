@@ -17,6 +17,8 @@ graph_common.cpp
 custom_visitors.hpp
 custom_visitors.cpp
 debug_msg_handler.hpp
+fault_tree_graph.cpp
+fault_tree_graph.h
 )
 
 add_library (graph ${GRAPH_SRCS})

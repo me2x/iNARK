@@ -7,6 +7,7 @@
 
 #include "graph/graph.hpp"
 #include "graph/timing_internal_graph.hpp"
+#include "graph/fault_tree_graph.h"
 
 #include <memory>
 int main (int argc, char *argv[])
@@ -157,11 +158,12 @@ int main (int argc, char *argv[])
         }
         case 2:
         {
-            //ig.search_interfered_nodes(from_component, false);
+            fault_tree_graph ftg = fault_tree_graph();
+            ftg.build_graph(g.get_source_graph_ref());
     #ifdef DEBUG	
             std::cout<<"not implemented yet"<<std::endl;
     #endif	
-            return ENOSYS;
+            return 0;
             break;
         }
         case 3:

@@ -1,79 +1,11 @@
 #include "graph_common.hpp"
-
-
-
-
-
-
-/*Custom_Vertex::Custom_Vertex(const Custom_Vertex& CV)
-{
-    switch (CV.layer)
-    {
-        case FUNCTION:
-                {
-                    First_Level_Vertex();
-                    this->layer = FUNCTION;
-                    this->name = CV.name;
-                    break;
-                }
-                case TASK:
-                {
-                    this = Second_Level_Vertex();
-                    this->layer = TASK;
-                    this->name = CV.name;
-                    break;
-                }    
-                case CONTROLLER:
-                {
-                    Third_Level_Vertex vtx = Third_Level_Vertex();
-                    vtx.OS_scheduler_type= reinterpret_cast<const Third_Level_Vertex&>(CV).OS_scheduler_type;
-                    vtx.priority_slots = std::map<int,Scheduler_Slot>();
-                    for(std::map<int,Scheduler_Slot>::const_iterator it = reinterpret_cast<const Third_Level_Vertex&>(CV).priority_slots.cbegin();it != reinterpret_cast<const Third_Level_Vertex&>(CV).priority_slots.cend();++it)
-                        {
-                            Scheduler_Slot s;
-                            s.id = (*it).second.id;
-                            s.pr = (*it).second.pr;
-                            vtx.priority_slots.insert(std::make_pair((*it).first,s));
-                        }
-                    vtx.name = CV.name;    
-                    return vtx;
-                    break;
-                }
-                case RESOURCE:
-                {
-                    Fourth_Level_Vertex vtx = Fourth_Level_Vertex();
-                    vtx.ports_map = std::map<int,Port>();
-                    for(std::map<int,Port>::iterator it = static_cast<Fourth_Level_Vertex>(CV).ports_map.begin();it != static_cast<Fourth_Level_Vertex>(CV).ports_map.end();++it)
-                        {
-                            Port p;
-                            p.is_master = (*iter).second.is_master;
-                            p.id = (*iter).second.id;
-                            p.associated_port_id =(*iter).second.associated_port_id;
-                            p.priority = (*iter).second.priority;
-                            vtx.ports_map.insert(std::make_pair((*iter).first,p));
-                        }
-                    vtx.component_type=static_cast<Fourth_Level_Vertex>(CV).component_type;
-                    vtx.component_priority_type=static_cast<Fourth_Level_Vertex>(CV).component_priority_type;
-                    vtx.name = CV.name;
-                    this = vtx;
-                    break;
-                }
-                case PHYSICAL:
-                {
-                    this = Fifth_Level_Vertex();
-                    this->layer = PHYSICAL;
-                    this->name = CV.name;
-                    break;
-                }
-                default:
-                    throw std::runtime_error("copy constructor without layer");
-                    break;
-        
-        
-    }
-}
-
-*/
+/****
+ 
+ 
+ Timing explosions
+ 
+ 
+ ****/
 
 void First_Level_Vertex::explode_component_timing(Timing_Graph& graph, std::map<std::string, std::map< int, std::string> >& components_map )  {
     PRINT_DEBUG("timing first level vertex building");
@@ -397,3 +329,45 @@ void Fifth_Level_Vertex::explode_component_timing(Timing_Graph& graph, std::map<
     graph[vt].layer = this->layer;
     
 }
+
+
+/***
+ 
+ 
+ 
+ FTA explosion 
+ 
+ 
+ ***/
+void First_Level_Vertex::explode_component_FTA(FT_Graph& graph)
+{
+    ft_vertex_t vt = boost::add_vertex(graph);
+    graph[vt].name = this->name;
+    graph[vt].layer = this->layer;
+}
+void Second_Level_Vertex::explode_component_FTA(FT_Graph& graph)
+{
+    ft_vertex_t vt = boost::add_vertex(graph);
+    graph[vt].name = this->name;
+    graph[vt].layer = this->layer;
+}
+void Third_Level_Vertex::explode_component_FTA(FT_Graph& graph)
+{
+    ft_vertex_t vt = boost::add_vertex(graph);
+    graph[vt].name = this->name;
+    graph[vt].layer = this->layer;
+}
+void Fourth_Level_Vertex::explode_component_FTA(FT_Graph& graph)
+{
+    ft_vertex_t vt = boost::add_vertex(graph);
+    graph[vt].type = this->component_type;
+    graph[vt].name = this->name;
+    graph[vt].layer = this->layer;
+}
+void Fifth_Level_Vertex::explode_component_FTA(FT_Graph& graph)
+{
+    ft_vertex_t vt = boost::add_vertex(graph);
+    graph[vt].name = this->name;
+    graph[vt].layer = this->layer;
+}
+

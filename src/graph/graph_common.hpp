@@ -27,11 +27,17 @@ public:
     bool is_master = false; //tiene traccia se un nodo rappresenta una porta master o una slave. ha senso solo al 4th lvl.
 };
 
-
+class FT_Node{
+public:
+    std::string name;
+    Layer layer; 
+    Component_Type type = NOT_SPECIFIED;
+  
+};
 
 typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS,Custom_Vertex,Custom_Edge >Source_Graph;
 typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS,boost::property<boost::vertex_color_t, boost::default_color_type, Timing_Node> > Timing_Graph; //edge custom non serve piu.
-
+typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS,boost::property<boost::vertex_color_t, boost::default_color_type, FT_Node> > FT_Graph;
 /*** 
  * this class is a common interface.
  * but it has to be instantiable in order to work with boost (don't know if the issue was due to the write graphwiz or the graph library, but if is not able to instantiate is not able to compile.
@@ -73,17 +79,20 @@ class Common_Vertex_Data{
             std::string name;
             Layer layer;
             virtual void explode_component_timing(Timing_Graph& graph, std::map<std::string, std::map< int, std::string> >& components_map ) = 0;
+            virtual void explode_component_FTA(FT_Graph& graph) = 0;
             virtual ~Common_Vertex_Data() {};
         };
         class First_Level_Vertex : public Common_Vertex_Data{
         public:    
             void explode_component_timing(Timing_Graph& graph, std::map<std::string, std::map< int, std::string> >& components_map ) ;
+            void explode_component_FTA(FT_Graph& graph);
             ~First_Level_Vertex() = default;
         };
 
         class Second_Level_Vertex : public Common_Vertex_Data{
         public: 
             void explode_component_timing(Timing_Graph& graph, std::map<std::string, std::map< int, std::string> >& components_map )  ;
+            void explode_component_FTA(FT_Graph& graph);
         };
 
         class Third_Level_Vertex : public Common_Vertex_Data{
@@ -91,6 +100,7 @@ class Common_Vertex_Data{
             std::shared_ptr< std::map <int, Scheduler_Slot> > priority_slots; //serve ???? uno slot per ogni task, e all interno dello slot è segnato il livello di priorita. boh...
             Component_Priority_Category OS_scheduler_type;
             void explode_component_timing(Timing_Graph& graph, std::map<std::string, std::map< int, std::string> >& components_map )  ;
+            void explode_component_FTA(FT_Graph& graph);
         };
 
         class Fourth_Level_Vertex : public Common_Vertex_Data{
@@ -99,12 +109,14 @@ class Common_Vertex_Data{
             Component_Priority_Category component_priority_type;
             Component_Type component_type;
             void explode_component_timing(Timing_Graph& graph, std::map<std::string, std::map< int, std::string> >& components_map )  ;
+            void explode_component_FTA(FT_Graph& graph);
         };
 
         class Fifth_Level_Vertex : public Common_Vertex_Data{
         public: 
             Fifth_Level_Vertex () {layer = Layer::PHYSICAL;}
             void explode_component_timing(Timing_Graph& graph, std::map<std::string, std::map< int, std::string> >& components_map )  ;
+            void explode_component_FTA(FT_Graph& graph);
         };
 
 
@@ -148,15 +160,27 @@ public:
         {
             ptr->explode_component_timing( graph, components_map );
         }
+        inline void explode_component_FTA (FT_Graph& graph)
+        {
+            ptr->explode_component_FTA(graph);
+        }
         void create_L1_child(std::string name){
                 ptr.reset(new First_Level_Vertex());
                 ptr->layer = FUNCTION;
                 ptr->name = name;
+#if 0
+                this->name = name;
+                this->lay = FUNCTION;
+#endif
         }
         void create_L2_child(std::string name){
                 ptr.reset(new Second_Level_Vertex());
                 ptr->layer = TASK;
                 ptr->name = name;
+#if 0
+                this->name = name;
+                this->lay = TASK;
+#endif            
         }
         void create_L3_child(std::string name,std::shared_ptr< std::map <int, Scheduler_Slot> > priority_slots,Component_Priority_Category OS_scheduler_type){
                 ptr.reset(new Third_Level_Vertex);
@@ -165,6 +189,11 @@ public:
                 real_ptr->name = name;
                 real_ptr->priority_slots = priority_slots;
                 real_ptr->OS_scheduler_type = OS_scheduler_type;
+#if 0
+                this->name = name;
+                this->lay = CONTROLLER;
+#endif
+
         }
         void create_L4_child(std::string name, std::shared_ptr< std::map< int, Port > > ports, Component_Type type, Component_Priority_Category handling){
                 ptr.reset(new Fourth_Level_Vertex);
@@ -174,11 +203,20 @@ public:
                 real_ptr->component_priority_type=handling;
                 real_ptr->ports_map=ports;
                 real_ptr->component_type=type;
+#if 0           
+                this->name = name;
+                this->lay = RESOURCE;
+#endif 
+            
         }
         void create_L5_child(std::string name){
                 ptr.reset(new Fifth_Level_Vertex());
                 ptr->layer = PHYSICAL;
                 ptr->name = name;
+#if 0
+                this->name = name;
+                this->lay = PHYSICAL;
+#endif
         }
         std::string get_name(){
             return ptr?ptr->name:"no_component";
@@ -186,6 +224,10 @@ public:
         Layer get_layer(){
             return ptr?ptr->layer:LAYER_ERROR;
         }
+#if 0
+        Layer lay;
+        std::string name; 
+#endif
 };
 
 
@@ -256,6 +298,11 @@ typedef boost::graph_traits<Timing_Graph>::vertex_descriptor timing_vertex_t;
 typedef boost::graph_traits<Timing_Graph>::edge_descriptor timing_edge_t;
 typedef boost::graph_traits<Timing_Graph>::vertex_iterator timing_vertex_iter;
 typedef boost::graph_traits<Timing_Graph>::edge_iterator timing_edge_iter;
+
+typedef boost::graph_traits<FT_Graph>::vertex_descriptor ft_vertex_t;
+typedef boost::graph_traits<FT_Graph>::edge_descriptor ft_edge_t;
+typedef boost::graph_traits<FT_Graph>::vertex_iterator ft_vertex_iter;
+typedef boost::graph_traits<FT_Graph>::edge_iterator ft_edge_iter;
 
 
 template <class Layer_Map,class Name_Map>
