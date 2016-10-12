@@ -152,7 +152,7 @@ bool source_graph::create_graph_from_xml(std::string xml)
             PRINT_DEBUG("-----");
             edge_t e; bool b;
             //build edge(s). 
-            //all intra layer edges are one - way, the inter layer are the mapped-on/ interfere with relations so must be bidirectional
+            //all intra layer edges are one - way, the inter layer are the mapped-on/ interfere with relations so must be bidirectional !!!!!!!!!!!!!!!!!!!!!!
             boost::tie(e,b) = boost::add_edge(from_node,to_node,(*local_graph));
             (*local_graph)[e].from_port = from_port;
             (*local_graph)[e].to_port = to_port;

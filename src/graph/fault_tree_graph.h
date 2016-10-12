@@ -6,6 +6,7 @@
 #include <boost/graph/breadth_first_search.hpp>
 #include <boost/graph/copy.hpp>
 #include "graph_common.hpp"
+#include "custom_visitors.hpp"
 #include <memory>
 
 class fault_tree_graph

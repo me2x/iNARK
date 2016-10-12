@@ -2,7 +2,7 @@
 #include <boost/graph/adjacency_list.hpp>
 #include "debug_msg_handler.hpp"
 #include <boost/graph/graphviz.hpp>
-#include <boost/graph/undirected_dfs.hpp>
+//#include <boost/graph/undirected_dfs.hpp>
 #include <boost/graph/graph_utility.hpp>
 #include <functional>
 #include <memory>
@@ -31,13 +31,12 @@ class FT_Node{
 public:
     std::string name;
     Layer layer; 
-    Component_Type type = NOT_SPECIFIED;
-  
+    Component_Priority_Category crit = ROUND_ROBIN;
 };
 
 typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS,Custom_Vertex,Custom_Edge >Source_Graph;
 typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS,boost::property<boost::vertex_color_t, boost::default_color_type, Timing_Node> > Timing_Graph; //edge custom non serve piu.
-typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS,boost::property<boost::vertex_color_t, boost::default_color_type, FT_Node> > FT_Graph;
+typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS,boost::property<boost::vertex_color_t, boost::default_color_type, FT_Node> > FT_Graph;
 /*** 
  * this class is a common interface.
  * but it has to be instantiable in order to work with boost (don't know if the issue was due to the write graphwiz or the graph library, but if is not able to instantiate is not able to compile.
@@ -248,8 +247,6 @@ public:
     int from_port;
 };
 
-// non ha sensooooo: tanto i tdma sono vertex.incoming_edges(), i priority sono PRIORITY_ENUM_SIZE, i RR sono 1.
-// basta usare l'edge port come indicatore del priority e sono a posto. 
 
 #if 0
 class First_Level_Vertex : public Custom_Vertex{

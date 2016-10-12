@@ -354,13 +354,14 @@ void Second_Level_Vertex::explode_component_FTA(FT_Graph& graph)
 void Third_Level_Vertex::explode_component_FTA(FT_Graph& graph)
 {
     ft_vertex_t vt = boost::add_vertex(graph);
+    graph[vt].crit = this->OS_scheduler_type;
     graph[vt].name = this->name;
     graph[vt].layer = this->layer;
 }
 void Fourth_Level_Vertex::explode_component_FTA(FT_Graph& graph)
 {
     ft_vertex_t vt = boost::add_vertex(graph);
-    graph[vt].type = this->component_type;
+    graph[vt].crit = this->component_priority_type;
     graph[vt].name = this->name;
     graph[vt].layer = this->layer;
 }

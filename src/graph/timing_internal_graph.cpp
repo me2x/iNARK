@@ -269,9 +269,9 @@ void timing_internal_graph::build_graph(std::shared_ptr<Source_Graph> g){
     }
     //search tasks for every processor
             
-    boost::filtered_graph<Timing_Graph,true_edge_predicate,task_search_filter_c> task_per_processor_fg (ig,true_edge_predicate(ig),task_search_filter_c(ig));   
+    boost::filtered_graph<Timing_Graph,true_edge_predicate<Timing_Graph>,task_search_filter_c> task_per_processor_fg (ig,true_edge_predicate<Timing_Graph>(ig),task_search_filter_c(ig));   
     masters_task_research_visitor::colormap map = get(boost::vertex_color, task_per_processor_fg);
-    std::pair<boost::filtered_graph<Timing_Graph,true_edge_predicate,task_search_filter_c>::vertex_iterator, boost::filtered_graph<Timing_Graph,true_edge_predicate,task_search_filter_c>::vertex_iterator> processor_to_task_f_vp;
+    std::pair<boost::filtered_graph<Timing_Graph,true_edge_predicate<Timing_Graph>,task_search_filter_c>::vertex_iterator, boost::filtered_graph<Timing_Graph,true_edge_predicate<Timing_Graph>,task_search_filter_c>::vertex_iterator> processor_to_task_f_vp;
     std::map<timing_vertex_t, std::vector <std::string>> processor_to_task_map;
     for(std::vector<timing_vertex_t>::iterator processor_iter = processor_vertex_t.begin();processor_iter != processor_vertex_t.end();++processor_iter)
     {
@@ -298,14 +298,14 @@ void timing_internal_graph::build_graph(std::shared_ptr<Source_Graph> g){
 #endif
 
     //filter graph (keep only 4th level)
-    boost::filtered_graph<Timing_Graph,true_edge_predicate,lv4_vertex_predicate_c> ifg (ig,true_edge_predicate(ig),lv4_vertex_predicate_c(ig));
+    boost::filtered_graph<Timing_Graph,true_edge_predicate<Timing_Graph>,lv4_vertex_predicate_c> ifg (ig,true_edge_predicate<Timing_Graph>(ig),lv4_vertex_predicate_c(ig));
     
     std::ofstream myfile;
     myfile.open ("/home/emanuele/Documents/tmp_graph/aaafiltrato.dot");
     boost::write_graphviz(myfile, ifg,make_vertex_writer(boost::get(&Timing_Node::layer, ifg),boost::get (&Timing_Node::name, ifg)));
     myfile.close();
     //build a map with the association name :: timing_vertex_t to pass to the following algorithms. only the 4th level nodes are needed
-    std::pair<boost::filtered_graph<Timing_Graph,true_edge_predicate,lv4_vertex_predicate_c>::vertex_iterator, boost::filtered_graph<Timing_Graph,true_edge_predicate,lv4_vertex_predicate_c>::vertex_iterator> ftvp;
+    std::pair<boost::filtered_graph<Timing_Graph,true_edge_predicate<Timing_Graph>,lv4_vertex_predicate_c>::vertex_iterator, boost::filtered_graph<Timing_Graph,true_edge_predicate<Timing_Graph>,lv4_vertex_predicate_c>::vertex_iterator> ftvp;
     
     for (ftvp = vertices(ifg); ftvp.first != ftvp.second; ++ftvp.first)
     {
@@ -370,10 +370,10 @@ bool timing_internal_graph::search_path(std::string from, std::string to, Layer 
         throw std::runtime_error ("node "+to+" does not exist in the graph");
     PRINT_DEBUG("from is: "+from +"and get_node_reference(from) returns vertex: "+ig[get_node_reference(from)].name);
     PRINT_DEBUG("to is: "+to +"and get_node_reference(from) returns vertex: "+ig[get_node_reference(to)].name);
-    boost::filtered_graph<Timing_Graph,true_edge_predicate,layer_filter_vertex_predicate_c> ifg (ig,true_edge_predicate(ig),layer_filter_vertex_predicate_c(ig,l));
+    boost::filtered_graph<Timing_Graph,true_edge_predicate<Timing_Graph>,layer_filter_vertex_predicate_c> ifg (ig,true_edge_predicate<Timing_Graph>(ig),layer_filter_vertex_predicate_c(ig,l));
     PRINT_DEBUG("in the filtered graph those nodes are from: "+ifg[get_node_reference(from)].name+" and to: "+ifg[get_node_reference(to)].name);
     exploration_from_interferes_with_to_visitor::colormap master_setter_map = get(boost::vertex_color, ifg);
-    std::pair<boost::filtered_graph<Timing_Graph,true_edge_predicate,layer_filter_vertex_predicate_c>::vertex_iterator, boost::filtered_graph<Timing_Graph,true_edge_predicate,layer_filter_vertex_predicate_c>::vertex_iterator> ftvp;
+    std::pair<boost::filtered_graph<Timing_Graph,true_edge_predicate<Timing_Graph>,layer_filter_vertex_predicate_c>::vertex_iterator, boost::filtered_graph<Timing_Graph,true_edge_predicate<Timing_Graph>,layer_filter_vertex_predicate_c>::vertex_iterator> ftvp;
     for (ftvp = vertices(ifg); ftvp.first != ftvp.second; ++ftvp.first)
         master_setter_map[*ftvp.first] = boost::default_color_type::white_color;
     exploration_from_interferes_with_to_visitor master_setter_vis = exploration_from_interferes_with_to_visitor(get_node_reference(to), name_to_node_map, l);

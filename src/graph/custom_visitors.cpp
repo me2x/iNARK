@@ -10,17 +10,15 @@ bool lv4_vertex_predicate_c::operator()(const vertex_t& vertex_id) const
     return (*graph_m)[vertex_id].layer == Layer::RESOURCE ;
 }
 
-bool true_edge_predicate::operator()(const edge_t& edge_id) const
-{
-    return true; 
-}
-
-
 bool layer_filter_vertex_predicate_c::operator()(const vertex_t& vertex_id) const
 {
     return (*graph_m)[vertex_id].layer <= layer ;
 }
 
+bool FT_print_filter_c::operator()(const vertex_t& vertex_id) const
+{
+    return (*color_map)[vertex_id] == boost::default_color_type::black_color;
+}
 
 
 
@@ -174,3 +172,15 @@ bool extern_edge_predicate_c::operator()(const inner_edge_t& edge_id) const{
 }
 
 #endif
+
+
+void FTA_visitor::start_vertex(const ft_vertex_t s, const FT_Graph g) const
+{
+    if (s != startin_point) throw (1);
+}
+FTA_visitor::FTA_visitor(ft_vertex_t start_vertex)
+{
+ startin_point = start_vertex;
+}
+
+

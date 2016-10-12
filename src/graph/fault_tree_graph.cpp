@@ -29,7 +29,7 @@ void fault_tree_graph::build_graph(std::shared_ptr< Source_Graph > g)
     
     std::ofstream myfile;
     myfile.open ("/home/emanuele/Documents/tmp_graph/FTsource.dot");
-    boost::write_graphviz(myfile, ig,make_vertex_writer(boost::get(&FT_Node::layer, ig),boost::get (&FT_Node::name, ig)));
+    boost::write_graphviz(myfile, ig,make_vertex_writer(boost::get(&FT_Node::crit, ig),boost::get (&FT_Node::name, ig))); //should use a different template: crit is mapped on the first three colors of layers
     myfile.close();  
    
     
@@ -39,21 +39,58 @@ void fault_tree_graph::print_FTAs()
 {
     std::set<ft_vertex_t> tasks;
     std::pair< ft_vertex_iter,ft_vertex_iter> ft_vtxs;
-    for (ft_vtxs = boost::vertices(*g); ft_vtxs.first != ft_vtxs.second; ++ft_vtxs.first)
+    for (ft_vtxs = boost::vertices(ig); ft_vtxs.first != ft_vtxs.second; ++ft_vtxs.first)
         if (ig[*ft_vtxs.first].layer == Layer::TASK)
             tasks.insert(*ft_vtxs.first);
         
-    //loop:     
-        //visit
+    //loop:
+    for (std::set<ft_vertex_t>::iterator it = tasks.begin();it != tasks.end();++it)
+    {
+        typedef boost::property_map<FT_Graph, boost::vertex_color_t>::type color_map_t;
+        color_map_t colorMap = get(boost::vertex_color, ig);; //Create a color map
+        PRINT_DEBUG("pre bfs step with node: "+ ig[*it].name);
+#ifdef DEBUG
+        FT_Graph::vertex_iterator ita, itEnd;
+        for (boost::tie(ita, itEnd) = boost::vertices(ig); ita != itEnd; ita++)
+        {
+        std::cout << "Color of node prebfs " << *ita << " is " << colorMap[*ita] << std::endl;
+        }
+#endif
+        FTA_visitor vis = FTA_visitor(*it);
+        try
+        {
+        boost::breadth_first_search(ig, *it,boost::color_map(colorMap).visitor(vis) );
+        }
+        catch (int exception)
+        {
+            if (exception == 1)
+                PRINT_DEBUG("found");
+        }
+#ifdef DEBUG
         
-        
+        for (boost::tie(ita, itEnd) = boost::vertices(ig); ita != itEnd; ita++)
+        {
+        std::cout << "Color of node " << *ita << " is " << colorMap[*ita] << std::endl;
+        }
+#endif
+//visit
+        PRINT_DEBUG("bfs step passed");
+        boost::filtered_graph<FT_Graph,true_edge_predicate<FT_Graph>,FT_print_filter_c> ifg (ig,true_edge_predicate<FT_Graph>(ig),FT_print_filter_c(ig,colorMap));
+        PRINT_DEBUG("filter step passed");
         //filter
-        
-        
-        
-        
+        std::ofstream myfile;
+        myfile.open ("/home/emanuele/Documents/tmp_graph/"+ig[*it].name+".dot");
+        boost::write_graphviz(myfile, ig,make_vertex_writer(boost::get(&FT_Node::crit, ig),boost::get (&FT_Node::name, ig))); //should use a different template: crit is mapped on the first three colors of layers
+        myfile.close(); 
+        PRINT_DEBUG("print step passed");
         //print
-    
+        
+        FT_Graph::vertex_iterator it2, it2End;
+        for (boost::tie(it2, it2End) = boost::vertices(ig); it2 != it2End; it2++)
+        {
+         colorMap[*it2] = boost::default_color_type::white_color; 
+        }
+    }
 }
 
 

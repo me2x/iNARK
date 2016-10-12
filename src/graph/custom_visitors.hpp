@@ -1,3 +1,7 @@
+
+#ifndef CUSTOM_VISITOR_H
+#define CUSTOM_VISITOR_H
+
 #include <boost/graph/filtered_graph.hpp>
 #include <boost/graph/breadth_first_search.hpp>
 #include <boost/graph/undirected_dfs.hpp>
@@ -46,6 +50,15 @@ private:
 
 
 #endif
+class FT_print_filter_c {
+public:
+  FT_print_filter_c() : graph_m(0) {}
+  FT_print_filter_c(const FT_Graph& g,boost::property_map<FT_Graph, boost::vertex_color_t>::type& cm) : graph_m(&g),color_map(&cm){}
+  bool operator()(const ft_vertex_t& vertex_id) const;
+private:
+  const FT_Graph* graph_m;
+  boost::property_map<FT_Graph, boost::vertex_color_t>::type* color_map;
+};
 
 class task_search_filter_c {
 public:
@@ -77,19 +90,21 @@ private:
 };
 
 //needed for boost reasons, doesn't filter any edge: to filter on vertices a filter for edges has to be provided.
+template <typename Graph>
 class true_edge_predicate {
 public:
   true_edge_predicate() : graph_m(0) {}
-  true_edge_predicate(const Timing_Graph& g) : graph_m(&g) {}
-  bool operator()(const edge_t& edge_id) const;
+  true_edge_predicate(const Graph& g) : graph_m(&g) {}
+  bool operator()(const typename boost::graph_traits<Graph>::edge_descriptor& edge_id) const {return true;} ;
 private:
-  const Timing_Graph* graph_m;
+  const Graph* graph_m;
 };
-//need to set the guard no double os.
+
+
 struct masters_task_research_visitor :public boost::default_dfs_visitor{
   std::vector<std::string>* discovered_tasks;
   timing_vertex_t curr_OS = Timing_Graph::null_vertex();
-    std::map<timing_vertex_t, std::set<timing_vertex_t>> to_be_whited_on_callback ;
+  std::map<timing_vertex_t, std::set<timing_vertex_t>> to_be_whited_on_callback ;
   masters_task_research_visitor(std::vector<std::string>& discovered)
   {
       discovered_tasks = &discovered;
@@ -400,20 +415,20 @@ struct exploration_from_interferes_with_to_visitor :public boost::default_dfs_vi
 
 
 //can be used both in search 2 and 3 (that are both one to many). the underlying graph is the only thing that changes between those two searches
-#if 0
-class interference_visitor :public boost::default_dfs_visitor{
+#if 1 
+class FTA_visitor :public boost::default_bfs_visitor{
 protected:
-  std::vector<vertex_t>* discovered_vertexes;
-  mutable bool start_flag;
+  ft_vertex_t startin_point;
 public:
-  interference_visitor(std::vector<vertex_t>& discovered);
-  void initialize_vertex(const vertex_t s, const boost::filtered_graph<Timing_Graph, inner_edge_predicate_c,inner_vertex_predicate_c>  g) const ;
-  void start_vertex(const vertex_t s, const boost::filtered_graph<Timing_Graph, inner_edge_predicate_c,inner_vertex_predicate_c>  g) const ;
-  void discover_vertex(const vertex_t s, const boost::filtered_graph<Timing_Graph, inner_edge_predicate_c,inner_vertex_predicate_c>  g) const ;
-  void examine_edge(const inner_edge_t e, const boost::filtered_graph<Timing_Graph, inner_edge_predicate_c,inner_vertex_predicate_c>  g) const ;
-  void tree_edge(const inner_edge_t e, const boost::filtered_graph<Timing_Graph, inner_edge_predicate_c,inner_vertex_predicate_c>  g) const ;
-  void back_edge(const inner_edge_t e, const boost::filtered_graph<Timing_Graph, inner_edge_predicate_c,inner_vertex_predicate_c>  g) const ;
-  void forward_or_cross_edge(const inner_edge_t e, const boost::filtered_graph<Timing_Graph, inner_edge_predicate_c,inner_vertex_predicate_c>  g) const ;
-  void finish_vertex(const vertex_t s, const boost::filtered_graph<Timing_Graph, inner_edge_predicate_c,inner_vertex_predicate_c>  g) const ;
+  FTA_visitor(ft_vertex_t start_vertex);
+  void initialize_vertex(const ft_vertex_t s, const FT_Graph  g) {} ;
+  void start_vertex(const ft_vertex_t s, const FT_Graph  g) const ;
+  void discover_vertex(const ft_vertex_t s, const FT_Graph  g) {};
+  void examine_edge(const ft_edge_t e, const FT_Graph  g) {} ;
+  void tree_edge(const ft_edge_t e, const FT_Graph  g) {PRINT_DEBUG("source is: "+(g)[boost::source(e,g)].name+" and target is: "+(g)[boost::target(e,g)].name);} ;
+  void back_edge(const ft_edge_t e, const FT_Graph  g) {} ;
+  void forward_or_cross_edge(const ft_edge_t e, const FT_Graph  g) {};
+  void finish_vertex(const ft_vertex_t s, const FT_Graph  g) {} ;
 };
+#endif
 #endif

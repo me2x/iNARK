@@ -160,6 +160,7 @@ int main (int argc, char *argv[])
         {
             fault_tree_graph ftg = fault_tree_graph();
             ftg.build_graph(g.get_source_graph_ref());
+            ftg.print_FTAs();
     #ifdef DEBUG	
             std::cout<<"not implemented yet"<<std::endl;
     #endif	
