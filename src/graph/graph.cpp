@@ -156,13 +156,14 @@ bool source_graph::create_graph_from_xml(std::string xml)
             boost::tie(e,b) = boost::add_edge(from_node,to_node,(*local_graph));
             (*local_graph)[e].from_port = from_port;
             (*local_graph)[e].to_port = to_port;
+#if 0
             if ((*local_graph)[from_node].get_layer() != (*local_graph)[to_node].get_layer())
             {
                 boost::tie(e,b) = boost::add_edge(to_node,from_node,(*local_graph));
                 (*local_graph)[e].from_port = to_port;
                 (*local_graph)[e].to_port = from_port;
             }
-
+#endif
 
         }
 

@@ -44,6 +44,54 @@ void timing_internal_graph::build_graph(std::shared_ptr<Source_Graph> g){
         //cases: 0 func to func, 1 func to task, 2 tast to task, 3 task to os, 4 os to os, 5 os to processor, 6 resource to resource, 7 resource to physical
         switch((*g)[old_graph_source].get_layer()+(*g)[old_graph_target].get_layer())
         {
+            case 0:
+            case 2:
+            case 6:
+            case 8:
+            {
+                if (components_map.count((*g)[old_graph_source].get_name()) != 0)
+                {
+                    new_source = get_node_reference(components_map.at((*g)[old_graph_source].get_name()).at((*g)[*ei].from_port !=NO_PORT? (*g)[*ei].from_port:1)); //pos 1 se non specificato serve per prendere componenti unici che sono stati in qualche modo toccati nella funzione di explode.
+                }
+                else
+                {
+                    new_source = get_node_reference((*g)[old_graph_source].get_name());
+                }
+                if (components_map.count((*g)[old_graph_target].get_name()) != 0)
+                {
+                    new_target = get_node_reference(components_map.at((*g)[old_graph_target].get_name()).at((*g)[*ei].to_port !=NO_PORT? (*g)[*ei].to_port:1));
+                }
+                else
+                {
+                    new_target = get_node_reference((*g)[old_graph_target].get_name());
+                }
+                
+                boost::tie(e,b) = boost::add_edge(new_source,new_target,ig);
+                break;
+            }
+            case 1:
+            {
+                if (components_map.count((*g)[old_graph_source].get_name()) != 0)
+                {
+                    new_source = get_node_reference(components_map.at((*g)[old_graph_source].get_name()).at((*g)[*ei].from_port !=NO_PORT? (*g)[*ei].from_port:1)); //pos 1 se non specificato serve per prendere componenti unici che sono stati in qualche modo toccati nella funzione di explode.
+                }
+                else
+                {
+                    new_source = get_node_reference((*g)[old_graph_source].get_name());
+                }
+                if (components_map.count((*g)[old_graph_target].get_name()) != 0)
+                {
+                    new_target = get_node_reference(components_map.at((*g)[old_graph_target].get_name()).at((*g)[*ei].to_port !=NO_PORT? (*g)[*ei].to_port:1));
+                }
+                else
+                {
+                    new_target = get_node_reference((*g)[old_graph_target].get_name());
+                }
+                
+                boost::tie(e,b) = boost::add_edge(new_source,new_target,ig);
+                boost::tie(e,b) = boost::add_edge(new_target,new_source,ig);
+                break;
+            }
             case 3: 
             {
                 //devo recuperare priority dallo scheduler slot del to component.
@@ -59,6 +107,7 @@ void timing_internal_graph::build_graph(std::shared_ptr<Source_Graph> g){
                             new_source = get_node_reference((*g)[old_graph_source].get_name());
                             new_target = get_node_reference((*g)[old_graph_target].get_name());
                             boost::tie(e,b) = boost::add_edge(new_source,new_target,ig);
+                            boost::tie(e,b) = boost::add_edge(new_target,new_source,ig);
                             break;
                         }
                         case PRIORITY:
@@ -68,6 +117,7 @@ void timing_internal_graph::build_graph(std::shared_ptr<Source_Graph> g){
                             new_source = get_node_reference((*g)[old_graph_source].get_name());
                             new_target = get_node_reference(components_map.at((*g)[old_graph_target].get_name()).at(pr));
                             boost::tie(e,b) = boost::add_edge(new_source,new_target,ig);
+                            boost::tie(e,b) = boost::add_edge(new_target,new_source,ig);
                             break;
                         }
                         case TDMA:
@@ -75,6 +125,7 @@ void timing_internal_graph::build_graph(std::shared_ptr<Source_Graph> g){
                             new_source = get_node_reference((*g)[old_graph_source].get_name());
                             new_target = get_node_reference(components_map.at((*g)[old_graph_target].get_name()).at((*g)[*ei].to_port));
                             boost::tie(e,b) = boost::add_edge(new_source,new_target,ig);
+                            boost::tie(e,b) = boost::add_edge(new_target,new_source,ig);
                             break;
                         }
                         default:
@@ -94,6 +145,7 @@ void timing_internal_graph::build_graph(std::shared_ptr<Source_Graph> g){
                             new_source = get_node_reference((*g)[old_graph_source].get_name());
                             new_target = get_node_reference((*g)[old_graph_target].get_name());
                             boost::tie(e,b) = boost::add_edge(new_source,new_target,ig);
+                            boost::tie(e,b) = boost::add_edge(new_target,new_source,ig);
                             break;
                         }
                         case PRIORITY:
@@ -105,6 +157,7 @@ void timing_internal_graph::build_graph(std::shared_ptr<Source_Graph> g){
                             new_target = get_node_reference((*g)[old_graph_target].get_name());
                             new_source = get_node_reference(components_map.at((*g)[old_graph_source].get_name()).at(pr));
                             boost::tie(e,b) = boost::add_edge(new_source,new_target,ig);
+                            boost::tie(e,b) = boost::add_edge(new_target,new_source,ig);
                             break;
                         }
                         case TDMA:
@@ -112,6 +165,7 @@ void timing_internal_graph::build_graph(std::shared_ptr<Source_Graph> g){
                             new_target = get_node_reference((*g)[old_graph_target].get_name());
                             new_source = get_node_reference(components_map.at((*g)[old_graph_source].get_name()).at((*g)[*ei].from_port));
                             boost::tie(e,b) = boost::add_edge(new_source,new_target,ig);
+                            boost::tie(e,b) = boost::add_edge(new_target,new_source,ig);
                             break;
                         }
                         default:
@@ -198,6 +252,7 @@ void timing_internal_graph::build_graph(std::shared_ptr<Source_Graph> g){
                         
                         PRINT_DEBUG("edge creation: source node is: "+ig[new_source].name+ "while old graph source is: "+(*g)[old_graph_source].get_name()+" and target is: "+ig[new_target].name+" while old graph target is: "+(*g)[old_graph_target].get_name());
                         boost::tie(e,b) = boost::add_edge(new_source,new_target,ig);
+                        boost::tie(e,b) = boost::add_edge(new_target,new_source,ig);
                     }
                 }
                 else
@@ -207,6 +262,7 @@ void timing_internal_graph::build_graph(std::shared_ptr<Source_Graph> g){
                     new_source = get_node_reference((*g)[old_graph_source].get_name()+(l4_is_source?"$$1":""));
                     new_target = get_node_reference((*g)[old_graph_target].get_name()+(l4_is_source?"":"$$1"));
                     boost::tie(e,b) = boost::add_edge(new_source,new_target,ig);
+                    boost::tie(e,b) = boost::add_edge(new_target,new_source,ig);
                 }
                 break;
             }
@@ -219,29 +275,14 @@ void timing_internal_graph::build_graph(std::shared_ptr<Source_Graph> g){
                     new_source = get_node_reference(l4_is_source? (*l4_to_l5_iter).second:(*g)[old_graph_source].get_name() );
                     new_target = get_node_reference(l4_is_source? (*g)[old_graph_target].get_name() : (*l4_to_l5_iter).second);
                     boost::tie(e,b) = boost::add_edge(new_source,new_target,ig);
+                    boost::tie(e,b) = boost::add_edge(new_target,new_source,ig);
                 }
                 break;
             }
             default: 
             {
-                if (components_map.count((*g)[old_graph_source].get_name()) != 0)
-                {
-                    new_source = get_node_reference(components_map.at((*g)[old_graph_source].get_name()).at((*g)[*ei].from_port !=NO_PORT? (*g)[*ei].from_port:1)); //pos 1 se non specificato serve per prendere componenti unici che sono stati in qualche modo toccati nella funzione di explode.
-                }
-                else
-                {
-                    new_source = get_node_reference((*g)[old_graph_source].get_name());
-                }
-                if (components_map.count((*g)[old_graph_target].get_name()) != 0)
-                {
-                    new_target = get_node_reference(components_map.at((*g)[old_graph_target].get_name()).at((*g)[*ei].to_port !=NO_PORT? (*g)[*ei].to_port:1));
-                }
-                else
-                {
-                    new_target = get_node_reference((*g)[old_graph_target].get_name());
-                }
-                
-                boost::tie(e,b) = boost::add_edge(new_source,new_target,ig);
+                PRINT_DEBUG("edge transformation in default case that should never be reached");
+                throw std::runtime_error("edge transformation in default case that should never be reached");
                 break;
             }
             

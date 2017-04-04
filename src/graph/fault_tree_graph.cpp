@@ -19,11 +19,37 @@ void fault_tree_graph::build_graph(std::shared_ptr< Source_Graph > g)
     edge_iter ei, ei_end;
     for (boost::tie(ei, ei_end) = boost::edges(*g); ei != ei_end; ++ei)
     {
-         ft_edge_t e; bool b;
-         //vertex_t oldsource = boost::source(*ei, *g);
-         ft_vertex_t new_source = get_node_reference((*g)[boost::source(*ei,*g)].get_name());
-         ft_vertex_t new_target = get_node_reference((*g)[boost::target(*ei,*g)].get_name());
-         boost::tie(e,b) = boost::add_edge(new_source,new_target,ig);
+        ft_edge_t e; bool b;
+        //vertex_t oldsource = boost::source(*ei, *g);
+        ft_vertex_t new_source = get_node_reference((*g)[boost::source(*ei,*g)].get_name());
+        ft_vertex_t new_target = get_node_reference((*g)[boost::target(*ei,*g)].get_name());
+        if(( ((ig[new_source].layer+ ig[new_target].layer )== 2) || ((ig[new_source].layer+ ig[new_target].layer)== 4) ))
+        {
+            PRINT_DEBUG("inverted");
+            boost::tie(e,b) = boost::add_edge(new_target,new_source,ig); //dependences between tasks and os have to be inverted in order to find task/os that can break the analyzed task. 
+        }
+        else if((ig[new_source].layer+ ig[new_target].layer )== 3)
+        {
+            if (ig[new_target].crit== Component_Priority_Category::ROUND_ROBIN)
+            {
+                //doppi archi
+                boost::tie(e,b) = boost::add_edge(new_target,new_source,ig);
+                boost::tie(e,b) = boost::add_edge(new_source,new_target,ig);
+            }
+            else 
+            {
+                //tdma singolo arco. 
+                boost::tie(e,b) = boost::add_edge(new_source,new_target,ig);
+                //priority????? TODO lascio sospeso non mi serve per l'esempio, se mai un giorno verrà ripreso il progetto va modellato.
+            }
+            
+        }
+            
+        else    
+        {
+            PRINT_DEBUG("correct edge");
+            boost::tie(e,b) = boost::add_edge(new_source,new_target,ig);
+         }   //other 
     }
     
     
@@ -50,12 +76,11 @@ void fault_tree_graph::print_FTAs()
         color_map_t colorMap = get(boost::vertex_color, ig);; //Create a color map
         PRINT_DEBUG("pre bfs step with node: "+ ig[*it].name);
 #ifdef DEBUG
-        FT_Graph::vertex_iterator ita, itEnd;
-        for (boost::tie(ita, itEnd) = boost::vertices(ig); ita != itEnd; ita++)
-        {
-        std::cout << "Color of node prebfs " << *ita << " is " << colorMap[*ita] << std::endl;
-        }
+FT_Graph::vertex_iterator ita, itEnd;
+for (boost::tie(ita, itEnd) = boost::vertices(ig); ita != itEnd; ita++)
+{std::cout << "Color of node prebfs " << *ita << " is " << colorMap[*ita] << std::endl;}
 #endif
+        //visit
         FTA_visitor vis = FTA_visitor(*it);
         try
         {
@@ -67,23 +92,24 @@ void fault_tree_graph::print_FTAs()
                 PRINT_DEBUG("found");
         }
 #ifdef DEBUG
-        
-        for (boost::tie(ita, itEnd) = boost::vertices(ig); ita != itEnd; ita++)
-        {
-        std::cout << "Color of node " << *ita << " is " << colorMap[*ita] << std::endl;
-        }
+for (boost::tie(ita, itEnd) = boost::vertices(ig); ita != itEnd; ita++)
+{std::cout << "Color of node " << *ita << " is " << colorMap[*ita] << std::endl;}
 #endif
-//visit
+
+        //filter
         PRINT_DEBUG("bfs step passed");
         boost::filtered_graph<FT_Graph,true_edge_predicate<FT_Graph>,FT_print_filter_c> ifg (ig,true_edge_predicate<FT_Graph>(ig),FT_print_filter_c(ig,colorMap));
         PRINT_DEBUG("filter step passed");
-        //filter
+        
+        boost::filtered_graph<FT_Graph,true_edge_predicate<FT_Graph>,FT_print_filter_c>::edge_iterator edge_it, edge_end;
+
+        //print
         std::ofstream myfile;
         myfile.open ("/home/emanuele/Documents/tmp_graph/"+ig[*it].name+".dot");
-        boost::write_graphviz(myfile, ig,make_vertex_writer(boost::get(&FT_Node::crit, ig),boost::get (&FT_Node::name, ig))); //should use a different template: crit is mapped on the first three colors of layers
+        boost::write_graphviz(myfile, ifg,make_vertex_writer(boost::get(&FT_Node::crit, ifg),boost::get (&FT_Node::name, ifg))); //should use a different template: crit is mapped on the first three colors of layers
         myfile.close(); 
         PRINT_DEBUG("print step passed");
-        //print
+        
         
         FT_Graph::vertex_iterator it2, it2End;
         for (boost::tie(it2, it2End) = boost::vertices(ig); it2 != it2End; it2++)
